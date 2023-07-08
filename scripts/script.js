@@ -19,8 +19,10 @@ class Piece {
     constructor(type) {
         this.type = type;
         this.color = ((type == type.toUpperCase()) ? 'w' : 'b');
-        this.img = images[pieceNames.indexOf(this.type)]
+        this.img = images[pieceNames.indexOf(this.type)];
         this.element = null;
+        this.pawnMoved = false;
+        this.kingCastled = false;
     }
 }
 
@@ -34,29 +36,31 @@ let currentPiece;
 let lastPlayed = 'b';
 
 function allowDrop(ev) {
-  ev.preventDefault();
+    ev.preventDefault();
 }
 
 function drag(ev) {
     if(pieces[ev.target.dataset.objIndex].color == lastPlayed)
         return;
-  currentPiece = ev.target;
-  setCurrentFilteredSquare(ev.target.parentElement);
-  checkLegalMoves();
+    currentPiece = ev.target;
+    setCurrentFilteredSquare(ev.target.parentElement);
+    checkLegalMoves();
 }
 
 function setCurrentFilteredSquare(square)
 {
-    for(let i in squares)
-        for(let j in squares[i])
-            squares[i][j].style.filter = 'none';
-    square.style.filter = 'hue-rotate(260deg)';
+    for(let i in squaresFlat)
+    {
+        squaresFlat[i].classList.remove('playing');
+        squaresFlat[i].classList.remove('played');
+    }
+    square.classList.add('played');
 }
 
 function drop(ev) {
   ev.preventDefault();
   colorSquares(legalMoves, true);
-  if(ev.target == currentPiece || ev.target == currentPiece.parentElement)
+  if(currentPiece == null || ev.target == currentPiece || ev.target == currentPiece.parentElement)
   {
     currentPiece = null;
     legalMoves = [];
@@ -64,8 +68,7 @@ function drop(ev) {
   }
 
   let player = document.getElementById('pieceSound');
-
-  lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
+    let piece = pieces[currentPiece.dataset.objIndex];
 
   if(ev.target.draggable == true)
   {
@@ -78,7 +81,9 @@ function drop(ev) {
     ev.target.remove();
     par.appendChild(currentPiece);
     setCurrentFilteredSquare(currentPiece.parentElement);
+    piece.pawnMoved = true;
     currentPiece = null;
+    lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
     player = document.getElementById('takeSound');
   }
   else if(ev.target.classList.contains('center'))
@@ -96,9 +101,11 @@ function drop(ev) {
     
     legalMoves = [];
     ev.target.appendChild(currentPiece);
-    currentPiece.parentElement.style.filter = 'hue-rotate(280deg) brightness(1.1)';
+    currentPiece.parentElement.classList.add('playing');
     currentFilteredSquare = ev.target.parentElement;
+    piece.pawnMoved = true;
     currentPiece = null;
+    lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
   }
   player.currentTime = 0;
   player.play();
@@ -265,15 +272,17 @@ function checkLegalMoves()
         }
     }
 
-    const pawnMoves = (c) => {
+    const pawnMoves = (p) => {
         let indices;
-        if(c == 'w')
+        if(p.color == 'w')
         {
             indices = [-9, -8, -7];
             if((positionIndex + 1) % 8 == 0)
                 indices = [-9, -8];
             if(positionIndex % 8 == 0)
                 indices = [-8, -7];
+            if(!p.pawnMoved)
+                indices.push(-16);
         }
         else
         {
@@ -282,6 +291,8 @@ function checkLegalMoves()
                 indices = [9, 8];
             if(positionIndex % 8 == 0)
                 indices = [8, 7];
+            if(!p.pawnMoved)
+                indices.push(16);
         }
         
         for(let i in indices)
@@ -292,7 +303,7 @@ function checkLegalMoves()
 
             if(indices[i] == -7 || indices[i] == -9 || indices[i] == 7 || indices[i] == 9)
             {
-                if(squaresFlat[positionIndex + indices[i]].children.length == 0 || c == pieces[squaresFlat[positionIndex + indices[i]].children[0].dataset.objIndex].color)
+                if(squaresFlat[positionIndex + indices[i]].children.length == 0 || p.color == pieces[squaresFlat[positionIndex + indices[i]].children[0].dataset.objIndex].color)
                     continue;
                 legalMoves.push(squaresFlat[positionIndex + indices[i]]);
             }
@@ -325,7 +336,7 @@ function checkLegalMoves()
             knightMoves(color);
             break;
         case 'p':
-            pawnMoves(color);
+            pawnMoves(piece);
             break;
         default:
             kingMoves();
@@ -338,9 +349,9 @@ function colorSquares(arr, uncolor) {
     for(let i in arr)
     {
         if(uncolor)
-            arr[i].style.filter = 'none';
+            arr[i].classList.remove('legal');
         else
-            arr[i].style.filter = 'hue-rotate(90deg)';
+            arr[i].classList.add('legal');
     }
 }
 

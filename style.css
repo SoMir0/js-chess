@@ -17,7 +17,7 @@ body, html {
     flex-direction: row;
     flex-wrap: wrap;
     user-select: none;
-    box-shadow: #bba58844 5px 5px 10px;
+    box-shadow: #3e415266 5px 5px 10px;
 }
 
 .center {
@@ -27,13 +27,13 @@ body, html {
 }
 
 .dark {
-    background-color: #5c4238;
+    background-color: #3e4152;
     width: 12.5%;
     height: 12.5%;
 }
 
 .light {
-    background-color: #bba588;
+    background-color: #abb1c0;
     width: 12.5%;
     height: 12.5%;
 }
@@ -59,4 +59,16 @@ body, html {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
+}
+
+.legal {
+    box-shadow: inset #01b601e3 0px 0px 15px;
+}
+
+.played {
+    background-color: #669192;
+}
+
+.playing {
+    background-color: #497e85;
 }
