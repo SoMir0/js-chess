@@ -12,62 +12,15 @@ let wRookImg = '/assets/128px/rook_white_shadow.png';
 let wQueenImg = '/assets/128px/queen_white_shadow.png';
 let wBishopImg = '/assets/128px/bishop_white_shadow.png';
 
+let images = [wPawnImg, wKnightImg, wBishopImg, wRookImg, wQueenImg, wKingImg, bPawnImg, bKnightImg, bBishopImg, bRookImg, bQueenImg, bKingImg];
+let pieceNames = ['P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'];
+
 class Piece {
     constructor(type) {
         this.type = type;
         this.color = ((type == type.toUpperCase()) ? 'w' : 'b');
-        this.img = '';
-        switch(this.color) {
-            case 'w':
-                switch(type.toLowerCase()) {
-                    case 'p':
-                        this.img = wPawnImg;
-                        break;
-                    case 'n':
-                        this.img = wKnightImg;
-                        break
-                    case 'b':
-                        this.img = wBishopImg;
-                        break;
-                    case 'r':
-                        this.img = wRookImg;
-                        break
-                    case 'q':
-                        this.img = wQueenImg;
-                        break;
-                    case 'k':
-                        this.img = wKingImg;
-                        break;
-                    default:
-                        this.img = wPawnImg;
-                }
-                break;
-             case 'b':
-                switch(type.toLowerCase()) {
-                    case 'p':
-                        this.img = bPawnImg;
-                        break;
-                    case 'n':
-                        this.img = bKnightImg;
-                        break
-                    case 'b':
-                        this.img = bBishopImg;
-                        break;
-                    case 'r':
-                        this.img = bRookImg;
-                        break
-                    case 'q':
-                        this.img = bQueenImg;
-                        break;
-                    case 'k':
-                        this.img = bKingImg;
-                        break;
-                    default:
-                        this.img = bPawnImg;
-                }
-                break;
-      }
-      this.element = null;
+        this.img = images[pieceNames.indexOf(this.type)]
+        this.element = null;
     }
 }
 
@@ -78,11 +31,15 @@ let legalMoves = [];
 
 let currentPiece;
 
+let lastPlayed = 'b';
+
 function allowDrop(ev) {
   ev.preventDefault();
 }
 
 function drag(ev) {
+    if(pieces[ev.target.dataset.objIndex].color == lastPlayed)
+        return;
   currentPiece = ev.target;
   setCurrentFilteredSquare(ev.target.parentElement);
   checkLegalMoves();
@@ -107,6 +64,8 @@ function drop(ev) {
   }
 
   let player = document.getElementById('pieceSound');
+
+  lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
 
   if(ev.target.draggable == true)
   {
@@ -205,6 +164,13 @@ function checkLegalMoves()
 {
     legalMoves = [];
 
+    let positionIndex = squaresFlat.indexOf(currentPiece.parentElement);
+
+    let n = squaresFlat[positionIndex + 8], e = squaresFlat[positionIndex + 1], w = squaresFlat[positionIndex - 1], s = squaresFlat[positionIndex - 8];
+    let ne = squaresFlat[positionIndex - 7], nw = squaresFlat[positionIndex - 9], se = squaresFlat[positionIndex + 9], sw = squaresFlat[positionIndex + 7];
+
+    let directions = [n, e, w, s, ne, nw, se, sw];
+
     const getPiece = (el) => pieces[el.dataset.objIndex];
 
     const checkKingMoves = (dir) => {
@@ -214,27 +180,157 @@ function checkLegalMoves()
         return false;
     }
 
-    let positionIndex = squaresFlat.indexOf(currentPiece.parentElement);
+    const slidingMoves = (t, c) => {
+        let indices = [8, 1, -1, -8, -7, -9, 9, 7];
+        let startingPos = 0;
+        let endingPos = directions.length;
+        if(t == 'b')
+            startingPos = 4;
+        if(t == 'r')
+            endingPos = 4;
+        for(let i = startingPos; i < endingPos; i++)
+        {
+            if ((positionIndex + 1) % 8 == 0)
+            {
+                if([1, 9, -7].includes(indices[i]))
+                    continue;
+            }
+            if (positionIndex % 8 == 0)
+            {
+                if([-1, -9, 7].includes(indices[i]))
+                    continue;
+            }
+            let nextSquare = positionIndex + indices[i];
 
-    let n = squaresFlat[positionIndex + 8], e = squaresFlat[positionIndex + 1], w = squaresFlat[positionIndex - 1], s = squaresFlat[positionIndex - 8];
-    let ne = squaresFlat[positionIndex - 7], nw = squaresFlat[positionIndex - 9], se = squaresFlat[positionIndex + 9], sw = squaresFlat[positionIndex + 7];
-    if(checkKingMoves(n))
-        legalMoves.push(n);
-    if(checkKingMoves(e))
-        legalMoves.push(e);
-    if(checkKingMoves(w))
-        legalMoves.push(w);
-    if(checkKingMoves(s))
-        legalMoves.push(s);
-    if(checkKingMoves(ne))
-        legalMoves.push(ne);
-    if(checkKingMoves(nw))
-        legalMoves.push(nw);
-    if(checkKingMoves(se))
-        legalMoves.push(se);
-    if(checkKingMoves(sw))
-        legalMoves.push(sw);
+            while(nextSquare < 64 && nextSquare > -1)
+            {
+                if(squaresFlat[nextSquare].children.length > 0)
+                {
+                    let clr = pieces[squaresFlat[nextSquare].children[0].dataset.objIndex].color;
+                    if(clr != c)
+                        legalMoves.push(squaresFlat[nextSquare]);
+                    break;
+                }
+                legalMoves.push(squaresFlat[nextSquare]);
+                if ((nextSquare + 1) % 8 == 0)
+                {
+                    if([1, 9, -7].includes(indices[i]))
+                        break;
+                }
+                if (nextSquare % 8 == 0)
+                {
+                    if([-1, -9, 7].includes(indices[i]))
+                        break;
+                }
+                nextSquare += indices[i];
+            }
+        }
+    }
 
+    const kingMoves = () => {
+        if((positionIndex + 1) % 8 == 0)
+            directions[1] = undefined, directions[4] = undefined, directions[6] = undefined;
+        if(positionIndex % 8 == 0)
+            directions[2] = undefined, directions[5] = undefined, directions[7] = undefined;
+        for(let i in directions)
+        {
+            if(checkKingMoves(directions[i]))
+                legalMoves.push(directions[i]);
+        }
+    }
+
+    const knightMoves = (c) => {
+        let indices = [-17, -15, -10, -6, 6, 10, 15, 17];
+        if((positionIndex + 1) % 8 == 0)
+            indices = [-17, -10, 6, 15];
+        if((positionIndex + 2) % 8 == 0)
+            indices = [-17, -15, -10, 6, 15, 17];
+        if((positionIndex) % 8 == 0)
+            indices = [-15, -6, 10, 17];
+        if((positionIndex - 1) % 8 == 0)
+            indices = [-17, -15, -6, 10, 15, 17];
+        for(let i in indices)
+        {
+            let pos = positionIndex + indices[i];
+            if(pos < 0 || pos > 63)
+                continue;
+
+            if(squaresFlat[positionIndex + indices[i]].children.length == 0)
+                legalMoves.push(squaresFlat[positionIndex + indices[i]]);
+            else {
+                let clr = pieces[squaresFlat[positionIndex + indices[i]].children[0].dataset.objIndex].color;
+                if(c != clr)
+                    legalMoves.push(squaresFlat[positionIndex + indices[i]]);
+            }
+        }
+    }
+
+    const pawnMoves = (c) => {
+        let indices;
+        if(c == 'w')
+        {
+            indices = [-9, -8, -7];
+            if((positionIndex + 1) % 8 == 0)
+                indices = [-9, -8];
+            if(positionIndex % 8 == 0)
+                indices = [-8, -7];
+        }
+        else
+        {
+            indices = [9, 8, 7];
+            if((positionIndex + 1) % 8 == 0)
+                indices = [9, 8];
+            if(positionIndex % 8 == 0)
+                indices = [8, 7];
+        }
+        
+        for(let i in indices)
+        {
+            let pos = positionIndex + indices[i];
+            if(pos < 0 || pos > 63)
+                continue;
+
+            if(indices[i] == -7 || indices[i] == -9 || indices[i] == 7 || indices[i] == 9)
+            {
+                if(squaresFlat[positionIndex + indices[i]].children.length == 0 || c == pieces[squaresFlat[positionIndex + indices[i]].children[0].dataset.objIndex].color)
+                    continue;
+                legalMoves.push(squaresFlat[positionIndex + indices[i]]);
+            }
+            else {
+                if(squaresFlat[positionIndex + indices[i]].children.length != 0)
+                    continue;
+                legalMoves.push(squaresFlat[positionIndex + indices[i]]);
+            }
+        }
+    }
+
+    let piece = getPiece(currentPiece);
+    let type = piece.type;
+    let color = piece.color;
+
+    switch(type.toLowerCase()) {
+        case 'q':
+            slidingMoves('q', color);
+            break;
+        case 'r':
+            slidingMoves('r', color);
+            break;
+        case 'b':
+            slidingMoves('b', color);
+            break;
+        case 'k':
+            kingMoves();
+            break;
+        case 'n':
+            knightMoves(color);
+            break;
+        case 'p':
+            pawnMoves(color);
+            break;
+        default:
+            kingMoves();
+            break;
+    }
     colorSquares(legalMoves, false);
 }
 
