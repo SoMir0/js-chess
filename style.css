@@ -1,0 +1,62 @@
+body, html {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    font-family: monospace;
+    background: #111;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#board {
+    width: 40vmax;
+    height: 40vmax;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    user-select: none;
+    box-shadow: #bba58844 5px 5px 10px;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dark {
+    background-color: #5c4238;
+    width: 12.5%;
+    height: 12.5%;
+}
+
+.light {
+    background-color: #bba588;
+    width: 12.5%;
+    height: 12.5%;
+}
+
+.horizontal {
+    position: absolute;
+    bottom: 5px;
+    width: 40vmax;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.horizontal p, .vertical p {
+    font-size: 1.5rem;
+    user-select: none;
+}
+
+.vertical {
+    position: relative;
+    right: 15px;
+    height: 40vmax;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
