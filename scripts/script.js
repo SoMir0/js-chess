@@ -35,6 +35,9 @@ let currentPiece;
 
 let lastPlayed = 'b';
 
+let enPassant = null;
+let enPassantPiece = null;
+
 function allowDrop(ev) {
     ev.preventDefault();
 }
@@ -58,57 +61,86 @@ function setCurrentFilteredSquare(square)
 }
 
 function drop(ev) {
-  ev.preventDefault();
-  colorSquares(legalMoves, true);
-  if(currentPiece == null || ev.target == currentPiece || ev.target == currentPiece.parentElement)
-  {
-    currentPiece = null;
-    legalMoves = [];
-    return;
-  }
+    ev.preventDefault();
+    colorSquares(legalMoves, true);
+    if(currentPiece == null || ev.target == currentPiece || ev.target == currentPiece.parentElement)
+    {
+        currentPiece = null;
+        legalMoves = [];
+        return;
+    }
 
-  let player = document.getElementById('pieceSound');
+    let player = document.getElementById('pieceSound');
     let piece = pieces[currentPiece.dataset.objIndex];
 
-  if(ev.target.draggable == true)
-  {
-    if(!legalMoves.includes(ev.target.parentElement))
+    if(ev.target.draggable == true)
     {
-        legalMoves = [];
-        return;
-    }
-    let par = ev.target.parentElement;
-    ev.target.remove();
-    par.appendChild(currentPiece);
-    setCurrentFilteredSquare(currentPiece.parentElement);
-    piece.pawnMoved = true;
-    currentPiece = null;
-    lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
-    player = document.getElementById('takeSound');
-  }
-  else if(ev.target.classList.contains('center'))
-  {
-    if(!legalMoves.includes(ev.target))
-    {
-        legalMoves = [];
-        return;
-    }
-    if(ev.target.children.length > 0)
-    {
-        ev.target.children[0].remove()
+        enPassant == null;
+        enPassantPiece == null;
+        if(!legalMoves.includes(ev.target.parentElement))
+        {
+            legalMoves = [];
+            return;
+        }
+        let par = ev.target.parentElement;
+        ev.target.remove();
+        par.appendChild(currentPiece);
+        setCurrentFilteredSquare(currentPiece.parentElement);
+        piece.pawnMoved = true;
+        currentPiece = null;
+        lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
         player = document.getElementById('takeSound');
     }
-    
-    legalMoves = [];
-    ev.target.appendChild(currentPiece);
-    currentPiece.parentElement.classList.add('playing');
-    currentFilteredSquare = ev.target.parentElement;
-    piece.pawnMoved = true;
-    currentPiece = null;
-    lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
-  }
-  player.currentTime = 0;
-  player.play();
+    else if(ev.target.classList.contains('center'))
+    {
+        if(!legalMoves.includes(ev.target))
+        {
+            enPassant == null;
+            enPassantPiece == null;
+            legalMoves = [];
+            return;
+        }
+        if(ev.target == enPassant)
+        {
+            enPassant == null;
+            enPassantPiece.remove();
+            enPassantPiece == null;
+        }
+        else if(enPassant != null)
+        {
+            enPassant == null;
+            enPassantPiece == null;
+        }
+        if(ev.target.children.length > 0)
+        {
+            enPassant == null;
+            enPassantPiece == null;
+            ev.target.children[0].remove()
+            player = document.getElementById('takeSound');
+        }
+        else if(ev.target.children.length == 0 && piece.type.toLowerCase() == 'p' && Math.abs(squaresFlat.indexOf(currentPiece.parentElement) - squaresFlat.indexOf(ev.target)) == 16)
+        {
+            enPassant = squaresFlat[squaresFlat.indexOf(currentPiece.parentElement) - (squaresFlat.indexOf(currentPiece.parentElement) - squaresFlat.indexOf(ev.target))/2];
+            enPassantPiece = currentPiece;
+        }
+        else if(ev.target.children.length == 0)
+        {
+            enPassant == null;
+            enPassantPiece == null;
+        }
+        
+        // enPassant == null;
+        // enPassantPiece == null;
+        legalMoves = [];
+        ev.target.appendChild(currentPiece);
+        currentPiece.parentElement.classList.add('playing');
+        currentFilteredSquare = ev.target.parentElement;
+        piece.pawnMoved = true;
+        currentPiece = null;
+        lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
+    }
+    player.currentTime = 0;
+    player.play();
 }
 
 function generateBoard() {
@@ -293,6 +325,15 @@ function checkLegalMoves()
                 indices = [8, 7];
             if(!p.pawnMoved)
                 indices.push(16);
+        }
+        if(enPassant != null)
+        {
+            let enIndex = squaresFlat.indexOf(enPassant);
+            let diff = positionIndex - enIndex;
+            if((diff == -7 || diff == -9) && p.color == 'w')
+                legalMoves.push(enPassant);
+            else if((diff == 7 || diff == 9) && p.color == 'b')
+                legalMoves.push(enPassant);
         }
         
         for(let i in indices)
