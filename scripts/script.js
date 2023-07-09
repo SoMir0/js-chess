@@ -21,7 +21,7 @@ class Piece {
         this.color = ((type == type.toUpperCase()) ? 'w' : 'b');
         this.img = images[pieceNames.indexOf(this.type)];
         this.element = null;
-        this.pawnMoved = false;
+        this.pieceMoved = false;
         this.kingCastled = false;
     }
 }
@@ -30,6 +30,7 @@ let squares = [];
 let squaresFlat = [];
 let pieces = [];
 let legalMoves = [];
+let specialMoves = [];
 
 let currentPiece;
 
@@ -38,12 +39,19 @@ let lastPlayed = 'b';
 let enPassant = null;
 let enPassantPiece = null;
 
+const getPiece = (el) => pieces[el.dataset.objIndex];
+
+function clearMoves() {
+    legalMoves = [];
+    specialMoves = [];
+}
+
 function allowDrop(ev) {
     ev.preventDefault();
 }
 
 function drag(ev) {
-    if(pieces[ev.target.dataset.objIndex].color == lastPlayed)
+    if(getPiece(ev.target).color == lastPlayed)
         return;
     currentPiece = ev.target;
     setCurrentFilteredSquare(ev.target.parentElement);
@@ -66,27 +74,27 @@ function drop(ev) {
     if(currentPiece == null || ev.target == currentPiece || ev.target == currentPiece.parentElement)
     {
         currentPiece = null;
-        legalMoves = [];
+        clearMoves();
         return;
     }
 
     let player = document.getElementById('pieceSound');
-    let piece = pieces[currentPiece.dataset.objIndex];
+    let piece = getPiece(currentPiece);
 
     if(ev.target.draggable == true)
     {
-        enPassant == null;
-        enPassantPiece == null;
+        // enPassant == null;
+        // enPassantPiece == null;
         if(!legalMoves.includes(ev.target.parentElement))
         {
-            legalMoves = [];
+            clearMoves();
             return;
         }
         let par = ev.target.parentElement;
         ev.target.remove();
         par.appendChild(currentPiece);
         setCurrentFilteredSquare(currentPiece.parentElement);
-        piece.pawnMoved = true;
+        piece.pieceMoved = true;
         currentPiece = null;
         lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
         player = document.getElementById('takeSound');
@@ -95,47 +103,74 @@ function drop(ev) {
     {
         if(!legalMoves.includes(ev.target))
         {
-            enPassant == null;
-            enPassantPiece == null;
-            legalMoves = [];
+            // enPassant == null;
+            // enPassantPiece == null;
+            clearMoves();
             return;
         }
-        if(ev.target == enPassant)
-        {
-            enPassant == null;
-            enPassantPiece.remove();
-            enPassantPiece == null;
-        }
-        else if(enPassant != null)
-        {
-            enPassant == null;
-            enPassantPiece == null;
-        }
+        // if(ev.target == enPassant)
+        // {
+        //     enPassant == null;
+        //     enPassantPiece.remove();
+        //     enPassantPiece == null;
+        // }
+        // else if(enPassant != null)
+        // {
+        //     enPassant == null;
+        //     enPassantPiece == null;
+        // }
         if(ev.target.children.length > 0)
         {
-            enPassant == null;
-            enPassantPiece == null;
+            // enPassant == null;
+            // enPassantPiece == null;
             ev.target.children[0].remove()
             player = document.getElementById('takeSound');
         }
-        else if(ev.target.children.length == 0 && piece.type.toLowerCase() == 'p' && Math.abs(squaresFlat.indexOf(currentPiece.parentElement) - squaresFlat.indexOf(ev.target)) == 16)
-        {
-            enPassant = squaresFlat[squaresFlat.indexOf(currentPiece.parentElement) - (squaresFlat.indexOf(currentPiece.parentElement) - squaresFlat.indexOf(ev.target))/2];
-            enPassantPiece = currentPiece;
-        }
+        // else if(ev.target.children.length == 0 && piece.type.toLowerCase() == 'p' && Math.abs(squaresFlat.indexOf(currentPiece.parentElement) - squaresFlat.indexOf(ev.target)) == 16)
+        // {
+        //     enPassant = squaresFlat[squaresFlat.indexOf(currentPiece.parentElement) - (squaresFlat.indexOf(currentPiece.parentElement) - squaresFlat.indexOf(ev.target))/2];
+        //     enPassantPiece = currentPiece;
+        // }
         else if(ev.target.children.length == 0)
         {
-            enPassant == null;
-            enPassantPiece == null;
+            // enPassant == null;
+            // enPassantPiece == null;
+            if(specialMoves.includes(ev.target))
+            {
+                if(piece.type.toLowerCase() == 'k')
+                {
+                    switch(squaresFlat.indexOf(ev.target))
+                    {
+                        case 62:
+                            squaresFlat[61].appendChild(squaresFlat[63].children[0]);
+                            squaresFlat[61].classList.add('playing');
+                            break;
+                        case 58:
+                            squaresFlat[59].appendChild(squaresFlat[56].children[0]);
+                            squaresFlat[59].classList.add('playing');
+                            break;
+                        case 2:
+                            squaresFlat[3].appendChild(squaresFlat[0].children[0]);
+                            squaresFlat[3].classList.add('playing');
+                            break;
+                        case 6:
+                            squaresFlat[5].appendChild(squaresFlat[7].children[0]);
+                            squaresFlat[5].classList.add('playing');
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
         }
         
         // enPassant == null;
         // enPassantPiece == null;
-        legalMoves = [];
+        clearMoves();
         ev.target.appendChild(currentPiece);
         currentPiece.parentElement.classList.add('playing');
         currentFilteredSquare = ev.target.parentElement;
-        piece.pawnMoved = true;
+        piece.pieceMoved = true;
         currentPiece = null;
         lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
     }
@@ -201,7 +236,7 @@ function decodeFEN(fenString = '') {
 
 function checkLegalMoves()
 {
-    legalMoves = [];
+    clearMoves();
 
     let positionIndex = squaresFlat.indexOf(currentPiece.parentElement);
 
@@ -209,8 +244,6 @@ function checkLegalMoves()
     let ne = squaresFlat[positionIndex - 7], nw = squaresFlat[positionIndex - 9], se = squaresFlat[positionIndex + 9], sw = squaresFlat[positionIndex + 7];
 
     let directions = [n, e, w, s, ne, nw, se, sw];
-
-    const getPiece = (el) => pieces[el.dataset.objIndex];
 
     const checkKingMoves = (dir) => {
         if(dir == undefined) return false;
@@ -245,7 +278,7 @@ function checkLegalMoves()
             {
                 if(squaresFlat[nextSquare].children.length > 0)
                 {
-                    let clr = pieces[squaresFlat[nextSquare].children[0].dataset.objIndex].color;
+                    let clr = getPiece(squaresFlat[nextSquare].children[0]).color;
                     if(clr != c)
                         legalMoves.push(squaresFlat[nextSquare]);
                     break;
@@ -266,7 +299,7 @@ function checkLegalMoves()
         }
     }
 
-    const kingMoves = () => {
+    const kingMoves = (p) => {
         if((positionIndex + 1) % 8 == 0)
             directions[1] = undefined, directions[4] = undefined, directions[6] = undefined;
         if(positionIndex % 8 == 0)
@@ -275,6 +308,34 @@ function checkLegalMoves()
         {
             if(checkKingMoves(directions[i]))
                 legalMoves.push(directions[i]);
+        }
+        if(!p.pieceMoved)
+        {
+            if(p.color == 'w')
+            {
+                if(squaresFlat[57].children.length == 0 && squaresFlat[58].children.length == 0 && squaresFlat[59].children.length == 0 && squaresFlat[56].children.length > 0 && getPiece(squaresFlat[56].children[0]).type.toLowerCase() == 'r' && getPiece(squaresFlat[56].children[0]).pieceMoved == false)
+                {
+                    legalMoves.push(squaresFlat[58]);
+                    specialMoves.push(squaresFlat[58]);
+                }
+                if(squaresFlat[61].children.length == 0 && squaresFlat[62].children.length == 0 && squaresFlat[63].children.length > 0 && getPiece(squaresFlat[63].children[0]).type.toLowerCase() == 'r' && getPiece(squaresFlat[63].children[0]).pieceMoved == false)
+                {
+                    legalMoves.push(squaresFlat[62]);
+                    specialMoves.push(squaresFlat[62]);
+                }
+            }
+            else {
+                if(squaresFlat[1].children.length == 0 && squaresFlat[2].children.length == 0 && squaresFlat[3].children.length == 0 && squaresFlat[0].children.length > 0 && getPiece(squaresFlat[0].children[0]).type.toLowerCase() == 'r' && getPiece(squaresFlat[0].children[0]).pieceMoved == false)
+                {
+                    legalMoves.push(squaresFlat[2]);
+                    specialMoves.push(squaresFlat[2]);
+                }
+                if(squaresFlat[5].children.length == 0 && squaresFlat[6].children.length == 0 && squaresFlat[7].children.length > 0 && getPiece(squaresFlat[7].children[0]).type.toLowerCase() == 'r' && getPiece(squaresFlat[7].children[0]).pieceMoved == false)
+                {
+                    legalMoves.push(squaresFlat[6]);
+                    specialMoves.push(squaresFlat[6]);
+                }
+            }
         }
     }
 
@@ -297,7 +358,7 @@ function checkLegalMoves()
             if(squaresFlat[positionIndex + indices[i]].children.length == 0)
                 legalMoves.push(squaresFlat[positionIndex + indices[i]]);
             else {
-                let clr = pieces[squaresFlat[positionIndex + indices[i]].children[0].dataset.objIndex].color;
+                let clr = getPiece(squaresFlat[positionIndex + indices[i]].children[0]).color;
                 if(c != clr)
                     legalMoves.push(squaresFlat[positionIndex + indices[i]]);
             }
@@ -313,7 +374,7 @@ function checkLegalMoves()
                 indices = [-9, -8];
             if(positionIndex % 8 == 0)
                 indices = [-8, -7];
-            if(!p.pawnMoved)
+            if(!p.pieceMoved)
                 indices.push(-16);
         }
         else
@@ -323,18 +384,18 @@ function checkLegalMoves()
                 indices = [9, 8];
             if(positionIndex % 8 == 0)
                 indices = [8, 7];
-            if(!p.pawnMoved)
+            if(!p.pieceMoved)
                 indices.push(16);
         }
-        if(enPassant != null)
-        {
-            let enIndex = squaresFlat.indexOf(enPassant);
-            let diff = positionIndex - enIndex;
-            if((diff == -7 || diff == -9) && p.color == 'w')
-                legalMoves.push(enPassant);
-            else if((diff == 7 || diff == 9) && p.color == 'b')
-                legalMoves.push(enPassant);
-        }
+        // if(enPassant != null)
+        // {
+        //     let enIndex = squaresFlat.indexOf(enPassant);
+        //     let diff = positionIndex - enIndex;
+        //     if((diff == -7 || diff == -9) && p.color == 'w')
+        //         legalMoves.push(enPassant);
+        //     else if((diff == 7 || diff == 9) && p.color == 'b')
+        //         legalMoves.push(enPassant);
+        // }
         
         for(let i in indices)
         {
@@ -344,7 +405,7 @@ function checkLegalMoves()
 
             if(indices[i] == -7 || indices[i] == -9 || indices[i] == 7 || indices[i] == 9)
             {
-                if(squaresFlat[positionIndex + indices[i]].children.length == 0 || p.color == pieces[squaresFlat[positionIndex + indices[i]].children[0].dataset.objIndex].color)
+                if(squaresFlat[positionIndex + indices[i]].children.length == 0 || p.color == getPiece(squaresFlat[positionIndex + indices[i]].children[0]).color)
                     continue;
                 legalMoves.push(squaresFlat[positionIndex + indices[i]]);
             }
@@ -371,7 +432,7 @@ function checkLegalMoves()
             slidingMoves('b', color);
             break;
         case 'k':
-            kingMoves();
+            kingMoves(piece);
             break;
         case 'n':
             knightMoves(color);
