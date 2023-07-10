@@ -241,8 +241,11 @@ function createPiece(parent, type) {
 function decodeFEN(fenString = '') {
     if(fenString === '')
         fenString = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-    let positions = fenString.split(' ')[0];
+    fenParts = fenString.split(' ');
+    let positions = fenParts[0];
     let ranks = positions.split('/');
+
+    lastPlayed = (fenParts[1] == 'w') ? 'b' : 'w';
 
     for(let i = 0; i < 8; i++)
     {
