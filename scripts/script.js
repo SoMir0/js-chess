@@ -161,7 +161,6 @@ function drop(ev) {
                 }
             }
         }
-        console.log(specialMoves);
         ev.target.appendChild(currentPiece);
         currentPiece.parentElement.classList.add('playing');
         currentFilteredSquare = ev.target.parentElement;
@@ -236,6 +235,7 @@ function checkLegalMoves()
     let color = piece.color;
 
     legalMoves = [];
+    colorSquares(squaresFlat, true);
 
     let positionIndex = squaresFlat.indexOf(currentPiece.parentElement);
 
