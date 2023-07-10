@@ -38,29 +38,6 @@ body, html {
     height: 12.5%;
 }
 
-.horizontal {
-    position: absolute;
-    bottom: 5px;
-    width: 40vmax;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-}
-
-.horizontal p, .vertical p {
-    font-size: 1.5rem;
-    user-select: none;
-}
-
-.vertical {
-    position: relative;
-    right: 15px;
-    height: 40vmax;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-}
-
 .legal {
     box-shadow: inset #b63a01e3 0px 0px 15px;
 }
@@ -71,4 +48,33 @@ body, html {
 
 .playing {
     background-color: #497e85;
+}
+
+.choosePiece {
+    position: fixed;
+    height: 7vmax;
+    width: 25vmax;
+    background-color: #111;
+    border-radius: 15px;
+    margin: 16.5vmax 7.5vmax;
+    padding: 5px;
+    display: none;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.choosePiece button {
+    outline: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    margin: 5px;
+}
+
+.choosePiece button:hover {
+    filter: brightness(1.2);
+}
+
+.choosePiece button img {
+    max-width: 5vmax;
 }

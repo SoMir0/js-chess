@@ -33,6 +33,7 @@ let legalMoves = [];
 let specialMoves = [];
 
 let currentPiece;
+let swapPiece;
 
 let lastPlayed = 'b';
 
@@ -89,7 +90,18 @@ function drop(ev) {
         }
         let par = ev.target.parentElement;
         ev.target.remove();
+        if(squaresFlat.indexOf(par) >= 0 && squaresFlat.indexOf(par) < 8 && piece.color == 'w' && piece.type.toLowerCase() == 'p')
+        {
+            pause = true;
+            document.getElementById('chooser').style.display = 'flex';
+        }
+        else if(squaresFlat.indexOf(par) >= 56 && squaresFlat.indexOf(par) < 64 && piece.color == 'b' && piece.type.toLowerCase() == 'p')
+        {
+            pause = true;
+            document.getElementById('chooser').style.display = 'flex';
+        }
         par.appendChild(currentPiece);
+        swapPiece = currentPiece;
         setCurrentFilteredSquare(currentPiece.parentElement);
         piece.pieceMoved = true;
         currentPiece = null;
@@ -145,6 +157,7 @@ function drop(ev) {
                     else
                         squaresFlat[squareIndex+8].children[0].remove();
                     clearMoves();
+                    player = document.getElementById('takeSound');
                 }
             }
         }
@@ -161,7 +174,20 @@ function drop(ev) {
                 }
             }
         }
+        if(squaresFlat.indexOf(ev.target) >= 0 && squaresFlat.indexOf(ev.target) < 8 && piece.color == 'w' && piece.type.toLowerCase() == 'p')
+        {
+            pause = true;
+            document.getElementById('chooser').style.display = 'flex';
+        }
+        else if(squaresFlat.indexOf(ev.target) >= 56 && squaresFlat.indexOf(ev.target) < 64 && piece.color == 'b' && piece.type.toLowerCase() == 'p')
+        {
+            pause = true;
+            document.getElementById('chooser').style.display = 'flex';
+        }
+        else {
+        }
         ev.target.appendChild(currentPiece);
+        swapPiece = currentPiece;
         currentPiece.parentElement.classList.add('playing');
         currentFilteredSquare = ev.target.parentElement;
         piece.pieceMoved = true;
@@ -197,6 +223,21 @@ function generateBoard() {
     decodeFEN();
 }
 
+function createPiece(parent, type) {
+    let newPiece = new Piece(type);
+    let pie = document.createElement('img');
+    pie.alt = 'piece';
+    pie.src = newPiece.img;
+    pie.draggable = true;
+    pie.ondragstart = drag;
+    pie.style.maxWidth = '80%';
+    newPiece.element = pie;
+    pie.dataset.objIndex = pieces.length;
+    parent.appendChild(pie);
+    pieces.push(newPiece);
+    return [newPiece, pie];
+}
+
 function decodeFEN(fenString = '') {
     if(fenString === '')
         fenString = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -213,17 +254,7 @@ function decodeFEN(fenString = '') {
                 continue;
             }
 
-            let newPiece = new Piece(ranks[i][j]);
-            let pie = document.createElement('img');
-            pie.alt = 'piece';
-            pie.src = newPiece.img;
-            pie.draggable = true;
-            pie.ondragstart = drag;
-            pie.style.maxWidth = '80%';
-            newPiece.element = pie;
-            pie.dataset.objIndex = pieces.length;
-            squares[i][j].appendChild(pie);
-            pieces.push(newPiece);
+            createPiece(squares[i][j], ranks[i][j]);
         }
     }
 }
@@ -454,6 +485,17 @@ function colorSquares(arr, uncolor) {
         else
             arr[i].classList.add('legal');
     }
+}
+
+function drawPiece(type) {
+    document.getElementById('chooser').style.display = 'none';
+    var p = swapPiece.parentElement;
+    var c = getPiece(swapPiece).color;
+    if(c == 'w')
+        type = type.toUpperCase();
+    swapPiece.remove();
+    createPiece(p, type);
+    pause = false;
 }
 
 generateBoard();
