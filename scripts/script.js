@@ -36,8 +36,7 @@ let currentPiece;
 
 let lastPlayed = 'b';
 
-let enPassant = null;
-let enPassantPiece = null;
+let pause = false;
 
 const getPiece = (el) => pieces[el.dataset.objIndex];
 
@@ -51,7 +50,7 @@ function allowDrop(ev) {
 }
 
 function drag(ev) {
-    if(getPiece(ev.target).color == lastPlayed)
+    if(pause || getPiece(ev.target).color == lastPlayed)
         return;
     currentPiece = ev.target;
     setCurrentFilteredSquare(ev.target.parentElement);
@@ -83,8 +82,6 @@ function drop(ev) {
 
     if(ev.target.draggable == true)
     {
-        // enPassant == null;
-        // enPassantPiece == null;
         if(!legalMoves.includes(ev.target.parentElement))
         {
             clearMoves();
@@ -103,43 +100,22 @@ function drop(ev) {
     {
         if(!legalMoves.includes(ev.target))
         {
-            // enPassant == null;
-            // enPassantPiece == null;
             clearMoves();
             return;
         }
-        // if(ev.target == enPassant)
-        // {
-        //     enPassant == null;
-        //     enPassantPiece.remove();
-        //     enPassantPiece == null;
-        // }
-        // else if(enPassant != null)
-        // {
-        //     enPassant == null;
-        //     enPassantPiece == null;
-        // }
         if(ev.target.children.length > 0)
         {
-            // enPassant == null;
-            // enPassantPiece == null;
             ev.target.children[0].remove()
             player = document.getElementById('takeSound');
         }
-        // else if(ev.target.children.length == 0 && piece.type.toLowerCase() == 'p' && Math.abs(squaresFlat.indexOf(currentPiece.parentElement) - squaresFlat.indexOf(ev.target)) == 16)
-        // {
-        //     enPassant = squaresFlat[squaresFlat.indexOf(currentPiece.parentElement) - (squaresFlat.indexOf(currentPiece.parentElement) - squaresFlat.indexOf(ev.target))/2];
-        //     enPassantPiece = currentPiece;
-        // }
         else if(ev.target.children.length == 0)
         {
-            // enPassant == null;
-            // enPassantPiece == null;
+            let squareIndex = squaresFlat.indexOf(ev.target);
             if(specialMoves.includes(ev.target))
             {
                 if(piece.type.toLowerCase() == 'k')
                 {
-                    switch(squaresFlat.indexOf(ev.target))
+                    switch(squareIndex)
                     {
                         case 62:
                             squaresFlat[61].appendChild(squaresFlat[63].children[0]);
@@ -160,13 +136,32 @@ function drop(ev) {
                         default:
                             break;
                     }
+                    clearMoves();
+                }
+                else if(piece.type.toLowerCase() == 'p' || squaresFlat[squareIndex-8].children.length > 0)
+                {
+                    if(piece.color == 'b')
+                        squaresFlat[squareIndex-8].children[0].remove();
+                    else
+                        squaresFlat[squareIndex+8].children[0].remove();
+                    clearMoves();
                 }
             }
         }
         
-        // enPassant == null;
-        // enPassantPiece == null;
         clearMoves();
+        if(ev.target.children.length == 0)
+        {
+            let squareIndex = squaresFlat.indexOf(ev.target);
+            if(piece.type.toLowerCase() == 'p')
+            {
+                if(Math.abs(squaresFlat.indexOf(currentPiece.parentElement) - squareIndex) == 16)
+                {
+                    specialMoves.push(squaresFlat[squaresFlat.indexOf(currentPiece.parentElement) - (squaresFlat.indexOf(currentPiece.parentElement) - squareIndex)/2]);
+                }
+            }
+        }
+        console.log(specialMoves);
         ev.target.appendChild(currentPiece);
         currentPiece.parentElement.classList.add('playing');
         currentFilteredSquare = ev.target.parentElement;
@@ -236,7 +231,11 @@ function decodeFEN(fenString = '') {
 
 function checkLegalMoves()
 {
-    clearMoves();
+    let piece = getPiece(currentPiece);
+    let type = piece.type;
+    let color = piece.color;
+
+    legalMoves = [];
 
     let positionIndex = squaresFlat.indexOf(currentPiece.parentElement);
 
@@ -374,28 +373,19 @@ function checkLegalMoves()
                 indices = [-9, -8];
             if(positionIndex % 8 == 0)
                 indices = [-8, -7];
-            if(!p.pieceMoved)
+            if(!p.pieceMoved && squaresFlat[positionIndex - 8].children.length == 0)
                 indices.push(-16);
         }
         else
         {
             indices = [9, 8, 7];
             if((positionIndex + 1) % 8 == 0)
-                indices = [9, 8];
-            if(positionIndex % 8 == 0)
                 indices = [8, 7];
-            if(!p.pieceMoved)
+            if(positionIndex % 8 == 0)
+                indices = [9, 8];
+            if(!p.pieceMoved && squaresFlat[positionIndex + 8].children.length == 0)
                 indices.push(16);
         }
-        // if(enPassant != null)
-        // {
-        //     let enIndex = squaresFlat.indexOf(enPassant);
-        //     let diff = positionIndex - enIndex;
-        //     if((diff == -7 || diff == -9) && p.color == 'w')
-        //         legalMoves.push(enPassant);
-        //     else if((diff == 7 || diff == 9) && p.color == 'b')
-        //         legalMoves.push(enPassant);
-        // }
         
         for(let i in indices)
         {
@@ -415,11 +405,20 @@ function checkLegalMoves()
                 legalMoves.push(squaresFlat[positionIndex + indices[i]]);
             }
         }
-    }
 
-    let piece = getPiece(currentPiece);
-    let type = piece.type;
-    let color = piece.color;
+        for(let i in specialMoves)
+        {
+            let diff = positionIndex - squaresFlat.indexOf(specialMoves[i]);
+            if(p.color == 'w') {
+                if(diff == 7 || diff == 9)
+                    legalMoves.push(specialMoves[i]);
+            }
+            else {
+                if(diff == -7 || diff == -9)
+                    legalMoves.push(specialMoves[i]);
+            }
+        }
+    }
 
     switch(type.toLowerCase()) {
         case 'q':
