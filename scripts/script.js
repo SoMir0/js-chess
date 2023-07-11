@@ -127,23 +127,23 @@ function drop(ev) {
             {
                 if(piece.type.toLowerCase() == 'k')
                 {
+                    const moveRook =(loc, pi) => {
+                            squaresFlat[loc].appendChild(squaresFlat[pi].children[0]);
+                            squaresFlat[loc].classList.add('playing');
+                    } 
                     switch(squareIndex)
                     {
                         case 62:
-                            squaresFlat[61].appendChild(squaresFlat[63].children[0]);
-                            squaresFlat[61].classList.add('playing');
+                            moveRook(61, 63);
                             break;
                         case 58:
-                            squaresFlat[59].appendChild(squaresFlat[56].children[0]);
-                            squaresFlat[59].classList.add('playing');
+                            moveRook(59, 56);
                             break;
                         case 2:
-                            squaresFlat[3].appendChild(squaresFlat[0].children[0]);
-                            squaresFlat[3].classList.add('playing');
+                            moveRook(3, 0);
                             break;
                         case 6:
-                            squaresFlat[5].appendChild(squaresFlat[7].children[0]);
-                            squaresFlat[5].classList.add('playing');
+                            moveRook(5, 7);
                             break;
                         default:
                             break;
