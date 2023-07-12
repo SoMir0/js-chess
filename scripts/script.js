@@ -35,6 +35,8 @@ let specialMoves = [];
 let currentPiece;
 let swapPiece;
 
+let whiteKing, blackKing;
+
 let lastPlayed = 'b';
 
 let pause = false;
@@ -70,7 +72,8 @@ function setCurrentFilteredSquare(square)
 
 function drop(ev) {
     ev.preventDefault();
-    colorSquares(legalMoves, true);
+    colorSquares(legalMoves, 'legal', true);
+    colorSquares(squaresFlat, 'inCheck', true);
     if(currentPiece == null || ev.target == currentPiece || ev.target == currentPiece.parentElement)
     {
         currentPiece = null;
@@ -107,6 +110,18 @@ function drop(ev) {
         currentPiece = null;
         lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
         player = document.getElementById('takeSound');
+
+        for(let i in pieces)
+        {
+            currentPiece = pieces[i].element;
+            checkLegalMoves(true);
+            if(legalMoves.includes(pieces[blackKing].element.parentElement))
+                pieces[blackKing].element.parentElement.classList.add('inCheck');
+            else if(legalMoves.includes(pieces[whiteKing].element.parentElement))
+                pieces[whiteKing].element.parentElement.classList.add('inCheck');
+        }
+        currentPiece = null;
+        clearMoves();
     }
     else if(ev.target.classList.contains('center'))
     {
@@ -193,6 +208,18 @@ function drop(ev) {
         piece.pieceMoved = true;
         currentPiece = null;
         lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
+
+        for(let i in pieces)
+        {
+            currentPiece = pieces[i].element;
+            checkLegalMoves(true);
+            if(legalMoves.includes(pieces[blackKing].element.parentElement))
+                pieces[blackKing].element.parentElement.classList.add('inCheck');
+            else if(legalMoves.includes(pieces[whiteKing].element.parentElement))
+                pieces[whiteKing].element.parentElement.classList.add('inCheck');
+        }
+        currentPiece = null;
+        clearMoves();
     }
     player.currentTime = 0;
     player.play();
@@ -257,19 +284,24 @@ function decodeFEN(fenString = '') {
                 continue;
             }
 
+            if(ranks[i][j] == 'K')
+                whiteKing = pieces.length;
+            else if(ranks[i][j] == 'k')
+                blackKing = pieces.length;
+
             createPiece(squares[i][j], ranks[i][j]);
         }
     }
 }
 
-function checkLegalMoves()
+function checkLegalMoves(noColor = false)
 {
     let piece = getPiece(currentPiece);
     let type = piece.type;
     let color = piece.color;
 
     legalMoves = [];
-    colorSquares(squaresFlat, true);
+    colorSquares(squaresFlat, 'legal', true);
 
     let positionIndex = squaresFlat.indexOf(currentPiece.parentElement);
 
@@ -477,16 +509,16 @@ function checkLegalMoves()
             kingMoves();
             break;
     }
-    colorSquares(legalMoves, false);
+    colorSquares(legalMoves, 'legal', noColor);
 }
 
-function colorSquares(arr, uncolor) {
+function colorSquares(arr, cls, uncolor) {
     for(let i in arr)
     {
         if(uncolor)
-            arr[i].classList.remove('legal');
+            arr[i].classList.remove(cls);
         else
-            arr[i].classList.add('legal');
+            arr[i].classList.add(cls);
     }
 }
 

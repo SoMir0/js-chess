@@ -78,3 +78,7 @@ body, html {
 .choosePiece button img {
     max-width: 5vmax;
 }
+
+.inCheck {
+    background-color: rgb(187, 95, 95);
+}
