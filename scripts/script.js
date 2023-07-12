@@ -73,8 +73,12 @@ function setCurrentFilteredSquare(square)
 
 function drop(ev) {
     ev.preventDefault();
+    dropPiece(ev.target);
+}
+
+function dropPiece(loc) {
     colorSquares(legalMoves, 'legal', true);
-    if(currentPiece == null || ev.target == currentPiece || ev.target == currentPiece.parentElement)
+    if(currentPiece == null || loc == currentPiece || loc == currentPiece.parentElement)
     {
         currentPiece = null;
         clearMoves();
@@ -84,163 +88,118 @@ function drop(ev) {
     let player = document.getElementById('pieceSound');
     let piece = getPiece(currentPiece);
 
-    if(ev.target.draggable == true)
+    let square;
+
+    if(loc.draggable)
+        square = loc.parentElement;
+    else if(loc.classList.contains('center'))
+        square = loc;
+    else if(!legalMoves.includes(square))
     {
-        if(!legalMoves.includes(ev.target.parentElement))
-        {
-            clearMoves();
-            return;
-        }
-
-        colorSquares(squaresFlat, 'inCheck', true);
-        checked = null;
-
-        let par = ev.target.parentElement;
-        ev.target.remove();
-        if(squaresFlat.indexOf(par) >= 0 && squaresFlat.indexOf(par) < 8 && piece.color == 'w' && piece.type.toLowerCase() == 'p')
-        {
-            pause = true;
-            document.getElementById('chooser').style.display = 'flex';
-        }
-        else if(squaresFlat.indexOf(par) >= 56 && squaresFlat.indexOf(par) < 64 && piece.color == 'b' && piece.type.toLowerCase() == 'p')
-        {
-            pause = true;
-            document.getElementById('chooser').style.display = 'flex';
-        }
-        par.appendChild(currentPiece);
-        swapPiece = currentPiece;
-        setCurrentFilteredSquare(currentPiece.parentElement);
-        piece.pieceMoved = true;
-        currentPiece = null;
-        lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
-        player = document.getElementById('takeSound');
-
-        for(let i in pieces)
-        {
-            currentPiece = pieces[i].element;
-            checkLegalMoves(true);
-            if(legalMoves.includes(pieces[blackKing].element.parentElement))
-            {
-                checked = 'b';
-                pieces[blackKing].element.parentElement.classList.add('inCheck');
-            }
-            else if(legalMoves.includes(pieces[whiteKing].element.parentElement))
-            {
-                checked = 'w';
-                pieces[whiteKing].element.parentElement.classList.add('inCheck');
-            }
-        }
-        currentPiece = null;
-        legalMoves = [];
-    }
-    else if(ev.target.classList.contains('center'))
-    {
-        if(!legalMoves.includes(ev.target))
-        {
-            clearMoves();
-            return;
-        }
-
-        colorSquares(squaresFlat, 'inCheck', true);
-        checked = null;
-
-        if(ev.target.children.length > 0)
-        {
-            ev.target.children[0].remove()
-            player = document.getElementById('takeSound');
-        }
-        else if(ev.target.children.length == 0)
-        {
-            let squareIndex = squaresFlat.indexOf(ev.target);
-            if(specialMoves.includes(ev.target))
-            {
-                if(piece.type.toLowerCase() == 'k')
-                {
-                    const moveRook =(loc, pi) => {
-                            squaresFlat[loc].appendChild(squaresFlat[pi].children[0]);
-                            squaresFlat[loc].classList.add('playing');
-                    } 
-                    switch(squareIndex)
-                    {
-                        case 62:
-                            moveRook(61, 63);
-                            break;
-                        case 58:
-                            moveRook(59, 56);
-                            break;
-                        case 2:
-                            moveRook(3, 0);
-                            break;
-                        case 6:
-                            moveRook(5, 7);
-                            break;
-                        default:
-                            break;
-                    }
-                    clearMoves();
-                }
-                else if(piece.type.toLowerCase() == 'p' || squaresFlat[squareIndex-8].children.length > 0)
-                {
-                    if(piece.color == 'b')
-                        squaresFlat[squareIndex-8].children[0].remove();
-                    else
-                        squaresFlat[squareIndex+8].children[0].remove();
-                    clearMoves();
-                    player = document.getElementById('takeSound');
-                }
-            }
-        }
-        
         clearMoves();
-        if(ev.target.children.length == 0)
-        {
-            let squareIndex = squaresFlat.indexOf(ev.target);
-            if(piece.type.toLowerCase() == 'p')
-            {
-                if(Math.abs(squaresFlat.indexOf(currentPiece.parentElement) - squareIndex) == 16)
-                {
-                    specialMoves.push(squaresFlat[squaresFlat.indexOf(currentPiece.parentElement) - (squaresFlat.indexOf(currentPiece.parentElement) - squareIndex)/2]);
-                }
-            }
-        }
-        if(squaresFlat.indexOf(ev.target) >= 0 && squaresFlat.indexOf(ev.target) < 8 && piece.color == 'w' && piece.type.toLowerCase() == 'p')
-        {
-            pause = true;
-            document.getElementById('chooser').style.display = 'flex';
-        }
-        else if(squaresFlat.indexOf(ev.target) >= 56 && squaresFlat.indexOf(ev.target) < 64 && piece.color == 'b' && piece.type.toLowerCase() == 'p')
-        {
-            pause = true;
-            document.getElementById('chooser').style.display = 'flex';
-        }
-        else {
-        }
-        ev.target.appendChild(currentPiece);
-        swapPiece = currentPiece;
-        currentPiece.parentElement.classList.add('playing');
-        currentFilteredSquare = ev.target.parentElement;
-        piece.pieceMoved = true;
-        currentPiece = null;
-        lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
-
-        for(let i in pieces)
-        {
-            currentPiece = pieces[i].element;
-            checkLegalMoves(true);
-            if(legalMoves.includes(pieces[blackKing].element.parentElement))
-            {
-                checked = 'b';
-                pieces[blackKing].element.parentElement.classList.add('inCheck');
-            }
-            else if(legalMoves.includes(pieces[whiteKing].element.parentElement))
-            {
-                checked = 'w';
-                pieces[whiteKing].element.parentElement.classList.add('inCheck');
-            }
-        }
-        currentPiece = null;
-        legalMoves = [];
+        return;
     }
+
+    colorSquares(squaresFlat, 'inCheck', true);
+    checked = null;
+
+    if(square.children.length > 0)
+    {
+        square.children[0].remove()
+        player = document.getElementById('takeSound');
+    }
+    else if(square.children.length == 0)
+    {
+        let squareIndex = squaresFlat.indexOf(square);
+        if(specialMoves.includes(square))
+        {
+            if(piece.type.toLowerCase() == 'k')
+            {
+                const moveRook =(square, pi) => {
+                        squaresFlat[square].appendChild(squaresFlat[pi].children[0]);
+                        squaresFlat[square].classList.add('playing');
+                } 
+                switch(squareIndex)
+                {
+                    case 62:
+                        moveRook(61, 63);
+                        break;
+                    case 58:
+                        moveRook(59, 56);
+                        break;
+                    case 2:
+                        moveRook(3, 0);
+                        break;
+                    case 6:
+                        moveRook(5, 7);
+                        break;
+                    default:
+                        break;
+                }
+                clearMoves();
+            }
+            else if(piece.type.toLowerCase() == 'p' || squaresFlat[squareIndex-8].children.length > 0)
+            {
+                if(piece.color == 'b')
+                    squaresFlat[squareIndex-8].children[0].remove();
+                else
+                    squaresFlat[squareIndex+8].children[0].remove();
+                clearMoves();
+                player = document.getElementById('takeSound');
+            }
+        }
+    }
+    
+    clearMoves();
+    if(square.children.length == 0)
+    {
+        let squareIndex = squaresFlat.indexOf(square);
+        if(piece.type.toLowerCase() == 'p')
+        {
+            if(Math.abs(squaresFlat.indexOf(currentPiece.parentElement) - squareIndex) == 16)
+            {
+                specialMoves.push(squaresFlat[squaresFlat.indexOf(currentPiece.parentElement) - (squaresFlat.indexOf(currentPiece.parentElement) - squareIndex)/2]);
+            }
+        }
+    }
+    if(squaresFlat.indexOf(square) >= 0 && squaresFlat.indexOf(square) < 8 && piece.color == 'w' && piece.type.toLowerCase() == 'p')
+    {
+        pause = true;
+        document.getElementById('chooser').style.display = 'flex';
+    }
+    else if(squaresFlat.indexOf(square) >= 56 && squaresFlat.indexOf(square) < 64 && piece.color == 'b' && piece.type.toLowerCase() == 'p')
+    {
+        pause = true;
+        document.getElementById('chooser').style.display = 'flex';
+    }
+    else {
+    }
+    square.appendChild(currentPiece);
+    swapPiece = currentPiece;
+    currentPiece.parentElement.classList.add('playing');
+    currentFilteredSquare = square.parentElement;
+    piece.pieceMoved = true;
+    currentPiece = null;
+    lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
+
+    for(let i in pieces)
+    {
+        currentPiece = pieces[i].element;
+        checkLegalMoves(true);
+        if(legalMoves.includes(pieces[blackKing].element.parentElement))
+        {
+            checked = 'b';
+            pieces[blackKing].element.parentElement.classList.add('inCheck');
+        }
+        else if(legalMoves.includes(pieces[whiteKing].element.parentElement))
+        {
+            checked = 'w';
+            pieces[whiteKing].element.parentElement.classList.add('inCheck');
+        }
+    }
+    currentPiece = null;
+    legalMoves = [];
+
     player.currentTime = 0;
     player.play();
 }
@@ -331,9 +290,10 @@ function checkLegalMoves(noColor = false)
     let directions = [n, e, w, s, ne, nw, se, sw];
 
     const addToLegalMoves = (move) => {
+        // TODO: implement me
         if(checked)
         {
-
+            legalMoves.push(move);
         }
         else {
             legalMoves.push(move);
