@@ -38,6 +38,7 @@ let swapPiece;
 let whiteKing, blackKing;
 
 let lastPlayed = 'b';
+let checked = null;
 
 let pause = false;
 
@@ -73,7 +74,6 @@ function setCurrentFilteredSquare(square)
 function drop(ev) {
     ev.preventDefault();
     colorSquares(legalMoves, 'legal', true);
-    colorSquares(squaresFlat, 'inCheck', true);
     if(currentPiece == null || ev.target == currentPiece || ev.target == currentPiece.parentElement)
     {
         currentPiece = null;
@@ -91,6 +91,10 @@ function drop(ev) {
             clearMoves();
             return;
         }
+
+        colorSquares(squaresFlat, 'inCheck', true);
+        checked = null;
+
         let par = ev.target.parentElement;
         ev.target.remove();
         if(squaresFlat.indexOf(par) >= 0 && squaresFlat.indexOf(par) < 8 && piece.color == 'w' && piece.type.toLowerCase() == 'p')
@@ -116,12 +120,18 @@ function drop(ev) {
             currentPiece = pieces[i].element;
             checkLegalMoves(true);
             if(legalMoves.includes(pieces[blackKing].element.parentElement))
+            {
+                checked = 'b';
                 pieces[blackKing].element.parentElement.classList.add('inCheck');
+            }
             else if(legalMoves.includes(pieces[whiteKing].element.parentElement))
+            {
+                checked = 'w';
                 pieces[whiteKing].element.parentElement.classList.add('inCheck');
+            }
         }
         currentPiece = null;
-        clearMoves();
+        legalMoves = [];
     }
     else if(ev.target.classList.contains('center'))
     {
@@ -130,6 +140,10 @@ function drop(ev) {
             clearMoves();
             return;
         }
+
+        colorSquares(squaresFlat, 'inCheck', true);
+        checked = null;
+
         if(ev.target.children.length > 0)
         {
             ev.target.children[0].remove()
@@ -214,12 +228,18 @@ function drop(ev) {
             currentPiece = pieces[i].element;
             checkLegalMoves(true);
             if(legalMoves.includes(pieces[blackKing].element.parentElement))
+            {
+                checked = 'b';
                 pieces[blackKing].element.parentElement.classList.add('inCheck');
+            }
             else if(legalMoves.includes(pieces[whiteKing].element.parentElement))
+            {
+                checked = 'w';
                 pieces[whiteKing].element.parentElement.classList.add('inCheck');
+            }
         }
         currentPiece = null;
-        clearMoves();
+        legalMoves = [];
     }
     player.currentTime = 0;
     player.play();
@@ -310,6 +330,16 @@ function checkLegalMoves(noColor = false)
 
     let directions = [n, e, w, s, ne, nw, se, sw];
 
+    const addToLegalMoves = (move) => {
+        if(checked)
+        {
+
+        }
+        else {
+            legalMoves.push(move);
+        }
+    }
+
     const checkKingMoves = (dir) => {
         if(dir == undefined) return false;
         if(dir.children.length == 0 || dir.children.length > 0 && getPiece(dir.children[0]).color != getPiece(currentPiece).color)
@@ -345,10 +375,10 @@ function checkLegalMoves(noColor = false)
                 {
                     let clr = getPiece(squaresFlat[nextSquare].children[0]).color;
                     if(clr != c)
-                        legalMoves.push(squaresFlat[nextSquare]);
+                        addToLegalMoves(squaresFlat[nextSquare]);
                     break;
                 }
-                legalMoves.push(squaresFlat[nextSquare]);
+                addToLegalMoves(squaresFlat[nextSquare]);
                 if ((nextSquare + 1) % 8 == 0)
                 {
                     if([1, 9, -7].includes(indices[i]))
@@ -372,7 +402,7 @@ function checkLegalMoves(noColor = false)
         for(let i in directions)
         {
             if(checkKingMoves(directions[i]))
-                legalMoves.push(directions[i]);
+                addToLegalMoves(directions[i]);
         }
         if(!p.pieceMoved)
         {
@@ -380,24 +410,24 @@ function checkLegalMoves(noColor = false)
             {
                 if(squaresFlat[57].children.length == 0 && squaresFlat[58].children.length == 0 && squaresFlat[59].children.length == 0 && squaresFlat[56].children.length > 0 && getPiece(squaresFlat[56].children[0]).type.toLowerCase() == 'r' && getPiece(squaresFlat[56].children[0]).pieceMoved == false)
                 {
-                    legalMoves.push(squaresFlat[58]);
+                    addToLegalMoves(squaresFlat[58]);
                     specialMoves.push(squaresFlat[58]);
                 }
                 if(squaresFlat[61].children.length == 0 && squaresFlat[62].children.length == 0 && squaresFlat[63].children.length > 0 && getPiece(squaresFlat[63].children[0]).type.toLowerCase() == 'r' && getPiece(squaresFlat[63].children[0]).pieceMoved == false)
                 {
-                    legalMoves.push(squaresFlat[62]);
+                    addToLegalMoves(squaresFlat[62]);
                     specialMoves.push(squaresFlat[62]);
                 }
             }
             else {
                 if(squaresFlat[1].children.length == 0 && squaresFlat[2].children.length == 0 && squaresFlat[3].children.length == 0 && squaresFlat[0].children.length > 0 && getPiece(squaresFlat[0].children[0]).type.toLowerCase() == 'r' && getPiece(squaresFlat[0].children[0]).pieceMoved == false)
                 {
-                    legalMoves.push(squaresFlat[2]);
+                    addToLegalMoves(squaresFlat[2]);
                     specialMoves.push(squaresFlat[2]);
                 }
                 if(squaresFlat[5].children.length == 0 && squaresFlat[6].children.length == 0 && squaresFlat[7].children.length > 0 && getPiece(squaresFlat[7].children[0]).type.toLowerCase() == 'r' && getPiece(squaresFlat[7].children[0]).pieceMoved == false)
                 {
-                    legalMoves.push(squaresFlat[6]);
+                    addToLegalMoves(squaresFlat[6]);
                     specialMoves.push(squaresFlat[6]);
                 }
             }
@@ -421,11 +451,11 @@ function checkLegalMoves(noColor = false)
                 continue;
 
             if(squaresFlat[positionIndex + indices[i]].children.length == 0)
-                legalMoves.push(squaresFlat[positionIndex + indices[i]]);
+                addToLegalMoves(squaresFlat[positionIndex + indices[i]]);
             else {
                 let clr = getPiece(squaresFlat[positionIndex + indices[i]].children[0]).color;
                 if(c != clr)
-                    legalMoves.push(squaresFlat[positionIndex + indices[i]]);
+                    addToLegalMoves(squaresFlat[positionIndex + indices[i]]);
             }
         }
     }
@@ -463,12 +493,12 @@ function checkLegalMoves(noColor = false)
             {
                 if(squaresFlat[positionIndex + indices[i]].children.length == 0 || p.color == getPiece(squaresFlat[positionIndex + indices[i]].children[0]).color)
                     continue;
-                legalMoves.push(squaresFlat[positionIndex + indices[i]]);
+                addToLegalMoves(squaresFlat[positionIndex + indices[i]]);
             }
             else {
                 if(squaresFlat[positionIndex + indices[i]].children.length != 0)
                     continue;
-                legalMoves.push(squaresFlat[positionIndex + indices[i]]);
+                addToLegalMoves(squaresFlat[positionIndex + indices[i]]);
             }
         }
 
@@ -477,11 +507,11 @@ function checkLegalMoves(noColor = false)
             let diff = positionIndex - squaresFlat.indexOf(specialMoves[i]);
             if(p.color == 'w') {
                 if(diff == 7 || diff == 9)
-                    legalMoves.push(specialMoves[i]);
+                    addToLegalMoves(specialMoves[i]);
             }
             else {
                 if(diff == -7 || diff == -9)
-                    legalMoves.push(specialMoves[i]);
+                    addToLegalMoves(specialMoves[i]);
             }
         }
     }
