@@ -58,7 +58,7 @@ function drag(ev) {
         return;
     currentPiece = ev.target;
     setCurrentFilteredSquare(ev.target.parentElement);
-    checkLegalMoves();
+    legalMoves = checkPseudoLegalMoves();
 }
 
 function setCurrentFilteredSquare(square)
@@ -94,7 +94,13 @@ function dropPiece(loc) {
         square = loc.parentElement;
     else if(loc.classList.contains('center'))
         square = loc;
-    else if(!legalMoves.includes(square))
+    else
+    {
+        clearMoves();
+        return;
+    }
+
+    if(!legalMoves.includes(square))
     {
         clearMoves();
         return;
@@ -177,7 +183,6 @@ function dropPiece(loc) {
     square.appendChild(currentPiece);
     swapPiece = currentPiece;
     currentPiece.parentElement.classList.add('playing');
-    currentFilteredSquare = square.parentElement;
     piece.pieceMoved = true;
     currentPiece = null;
     lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
@@ -185,7 +190,7 @@ function dropPiece(loc) {
     for(let i in pieces)
     {
         currentPiece = pieces[i].element;
-        checkLegalMoves(true);
+        legalMoves = checkPseudoLegalMoves(true);
         if(legalMoves.includes(pieces[blackKing].element.parentElement))
         {
             checked = 'b';
@@ -273,13 +278,33 @@ function decodeFEN(fenString = '') {
     }
 }
 
-function checkLegalMoves(noColor = false)
+// function checkMoves() {
+//     legalMoves = checkPseudoLegalMoves();
+//     for(let i in legalMoves)
+//     {
+//         simulateMove(legalMoves[i]);
+//         for(let j in pieces)
+//         {
+//             let newArray = checkPseudoLegalMoves();
+//             if(newArray.contains(kingSquare))
+//             {
+//                 dontAdd();
+//             }
+//             else {
+//                 add();
+//             }
+//         }
+//         unsimulateMove();
+//     }
+// }
+
+function checkPseudoLegalMoves(noColor = false)
 {
     let piece = getPiece(currentPiece);
     let type = piece.type;
     let color = piece.color;
 
-    legalMoves = [];
+    let movesArray = [];
     colorSquares(squaresFlat, 'legal', true);
 
     let positionIndex = squaresFlat.indexOf(currentPiece.parentElement);
@@ -293,10 +318,10 @@ function checkLegalMoves(noColor = false)
         // TODO: implement me
         if(checked)
         {
-            legalMoves.push(move);
+            movesArray.push(move);
         }
         else {
-            legalMoves.push(move);
+            movesArray.push(move);
         }
     }
 
@@ -499,10 +524,11 @@ function checkLegalMoves(noColor = false)
             kingMoves();
             break;
     }
-    colorSquares(legalMoves, 'legal', noColor);
+    colorSquares(movesArray, 'legal', noColor);
+    return movesArray;
 }
 
-function colorSquares(arr, cls, uncolor) {
+function colorSquares(arr, cls, uncolor = false) {
     for(let i in arr)
     {
         if(uncolor)
