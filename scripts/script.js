@@ -121,7 +121,7 @@ function dropPiece(loc) {
         {
             if(piece.type.toLowerCase() == 'k')
             {
-                const moveRook =(square, pi) => {
+                const moveRook = (square, pi) => {
                         squaresFlat[square].appendChild(squaresFlat[pi].children[0]);
                         squaresFlat[square].classList.add('playing');
                 } 
@@ -168,6 +168,7 @@ function dropPiece(loc) {
             }
         }
     }
+
     if(squaresFlat.indexOf(square) >= 0 && squaresFlat.indexOf(square) < 8 && piece.color == 'w' && piece.type.toLowerCase() == 'p')
     {
         pause = true;
@@ -178,8 +179,7 @@ function dropPiece(loc) {
         pause = true;
         document.getElementById('chooser').style.display = 'flex';
     }
-    else {
-    }
+
     square.appendChild(currentPiece);
     swapPiece = currentPiece;
     currentPiece.parentElement.classList.add('playing');
@@ -278,25 +278,27 @@ function decodeFEN(fenString = '') {
     }
 }
 
-// function checkMoves() {
-//     legalMoves = checkPseudoLegalMoves();
-//     for(let i in legalMoves)
-//     {
-//         simulateMove(legalMoves[i]);
-//         for(let j in pieces)
-//         {
-//             let newArray = checkPseudoLegalMoves();
-//             if(newArray.contains(kingSquare))
-//             {
-//                 dontAdd();
-//             }
-//             else {
-//                 add();
-//             }
-//         }
-//         unsimulateMove();
-//     }
-// }
+function simulateMove(move) {
+    let oldPos = currentPiece.parentElement;
+    dropPiece(move);
+}
+
+function unsimulateMove(oldPos) {
+    dropPiece(oldPos);
+}
+
+function checkMoves() {
+    let pseudoLegalMoves = checkPseudoLegalMoves();
+    for(let i in pseudoLegalMoves)
+    {
+        simulateMove(pseudoLegalMoves[i]);
+        let newArray = checkPseudoLegalMoves();
+        if(!newArray.contains(kingSquare)) {
+            legalMoves.push(pseudoLegalMoves[j]);
+        }
+        unsimulateMove();
+    }
+}
 
 function checkPseudoLegalMoves(noColor = false)
 {
