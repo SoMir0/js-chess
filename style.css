@@ -82,3 +82,10 @@ body, html {
 .inCheck {
     background-color: rgb(187, 95, 95);
 }
+
+.winText {
+    position: absolute;
+    font-size: 2rem;
+    top: 0;
+    display: none;
+}

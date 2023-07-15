@@ -196,8 +196,13 @@ function dropPiece(loc) {
     player.currentTime = 0;
     player.play();
 
-    let whiteInCheckmate = true;
-    let blackInCheckmate = true;
+    checkCheckmate('w');
+    checkCheckmate('b');
+}
+
+function checkCheckmate(color) {
+    let isInCheckmate = true;
+    let isInCheck = false;
 
     for(let i in squaresFlat)
     {
@@ -205,20 +210,34 @@ function dropPiece(loc) {
             continue;
         let thisPiece = getPiece(squaresFlat[i].children[0]);
         currentPiece = thisPiece.element;
-        checkLegalMoves(squaresFlat[i].children[0]);
+        checkLegalMoves(true);
+        if(thisPiece.color != color)
+        {
+            let king = (color == 'w') ? whiteKing : blackKing;
+            if(legalMoves.includes(pieces[king].element.parentElement))
+                isInCheck = true;
+            legalMoves = [];
+            continue;
+        }
         if(legalMoves.length != 0)
         {
-            if(thisPiece.color == 'w')
-                whiteInCheckmate = false;
-            else
-                blackInCheckmate = false;
+            isInCheckmate = false;
         }
     }
 
-    if(whiteInCheckmate)
-        alert('black wins');
-    else if(blackInCheckmate)
-        alert('white wins');
+    let clr = (color == 'w') ? 'black' : 'white';
+
+    if(isInCheckmate)
+    {
+        let text = document.getElementById('winText');
+        text.style.display = 'inline-block';
+        if(isInCheck)
+            text.innerHTML = clr + ' wins!';
+        else
+            text.innerHTML = 'stalemate!';
+
+        pause = true;
+    }
 
     legalMoves = [];
     currentPiece = null;
