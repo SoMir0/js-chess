@@ -34,6 +34,9 @@ let specialMoves = [];
 
 let currentPiece;
 let swapPiece;
+let reservePiece = null;
+
+let oldPos;
 
 let whiteKing, blackKing;
 
@@ -58,7 +61,7 @@ function drag(ev) {
         return;
     currentPiece = ev.target;
     setCurrentFilteredSquare(ev.target.parentElement);
-    legalMoves = checkPseudoLegalMoves();
+    checkLegalMoves();
 }
 
 function setCurrentFilteredSquare(square)
@@ -187,26 +190,38 @@ function dropPiece(loc) {
     currentPiece = null;
     lastPlayed = (lastPlayed == 'b') ? 'w' : 'b';
 
-    for(let i in pieces)
-    {
-        currentPiece = pieces[i].element;
-        legalMoves = checkPseudoLegalMoves(true);
-        if(legalMoves.includes(pieces[blackKing].element.parentElement))
-        {
-            checked = 'b';
-            pieces[blackKing].element.parentElement.classList.add('inCheck');
-        }
-        else if(legalMoves.includes(pieces[whiteKing].element.parentElement))
-        {
-            checked = 'w';
-            pieces[whiteKing].element.parentElement.classList.add('inCheck');
-        }
-    }
     currentPiece = null;
     legalMoves = [];
 
     player.currentTime = 0;
     player.play();
+
+    let whiteInCheckmate = true;
+    let blackInCheckmate = true;
+
+    for(let i in squaresFlat)
+    {
+        if(squaresFlat[i].children.length == 0)
+            continue;
+        let thisPiece = getPiece(squaresFlat[i].children[0]);
+        currentPiece = thisPiece.element;
+        checkLegalMoves(squaresFlat[i].children[0]);
+        if(legalMoves.length != 0)
+        {
+            if(thisPiece.color == 'w')
+                whiteInCheckmate = false;
+            else
+                blackInCheckmate = false;
+        }
+    }
+
+    if(whiteInCheckmate)
+        alert('black wins');
+    else if(blackInCheckmate)
+        alert('white wins');
+
+    legalMoves = [];
+    currentPiece = null;
 }
 
 function generateBoard() {
@@ -279,37 +294,64 @@ function decodeFEN(fenString = '') {
 }
 
 function simulateMove(move) {
-    let oldPos = currentPiece.parentElement;
-    dropPiece(move);
+    oldPos = currentPiece.parentElement;
+    if(move.children.length > 0) {
+        reservePiece = move.children[0];
+        move.removeChild(reservePiece);
+    }
+    move.appendChild(currentPiece);
 }
 
-function unsimulateMove(oldPos) {
-    dropPiece(oldPos);
+function unsimulateMove(reserveLoc) {
+    if(reservePiece != null) {
+        reserveLoc.appendChild(reservePiece);
+        reservePiece = null;
+    }
+    oldPos.appendChild(currentPiece);
 }
 
-function checkMoves() {
+function checkLegalMoves(noColor = false) {
+    colorSquares(squaresFlat, 'legal', true);
+
     let pseudoLegalMoves = checkPseudoLegalMoves();
+
     for(let i in pseudoLegalMoves)
     {
         simulateMove(pseudoLegalMoves[i]);
-        let newArray = checkPseudoLegalMoves();
-        if(!newArray.contains(kingSquare)) {
-            legalMoves.push(pseudoLegalMoves[j]);
+
+        let addMove = true;
+
+        // Check if it's check
+        for(let j in squaresFlat)
+        {
+            if(squaresFlat[j].children.length == 0)
+                continue;
+            let newArray = checkPseudoLegalMoves(squaresFlat[j].children[0]);
+            if(newArray.includes(pieces[whiteKing].element.parentElement) && lastPlayed == 'b' || newArray.includes(pieces[blackKing].element.parentElement) && lastPlayed == 'w')
+            {
+                addMove = false;
+                break;
+            }
         }
-        unsimulateMove();
+
+        if(addMove)
+            legalMoves.push(pseudoLegalMoves[i]);
+
+        unsimulateMove(pseudoLegalMoves[i]);
     }
+
+    colorSquares(legalMoves, 'legal', noColor);
 }
 
-function checkPseudoLegalMoves(noColor = false)
+function checkPseudoLegalMoves(currPiece = currentPiece)
 {
-    let piece = getPiece(currentPiece);
+    let piece = getPiece(currPiece);
     let type = piece.type;
     let color = piece.color;
 
     let movesArray = [];
-    colorSquares(squaresFlat, 'legal', true);
 
-    let positionIndex = squaresFlat.indexOf(currentPiece.parentElement);
+    let positionIndex = squaresFlat.indexOf(currPiece.parentElement);
 
     let n = squaresFlat[positionIndex + 8], e = squaresFlat[positionIndex + 1], w = squaresFlat[positionIndex - 1], s = squaresFlat[positionIndex - 8];
     let ne = squaresFlat[positionIndex - 7], nw = squaresFlat[positionIndex - 9], se = squaresFlat[positionIndex + 9], sw = squaresFlat[positionIndex + 7];
@@ -329,7 +371,7 @@ function checkPseudoLegalMoves(noColor = false)
 
     const checkKingMoves = (dir) => {
         if(dir == undefined) return false;
-        if(dir.children.length == 0 || dir.children.length > 0 && getPiece(dir.children[0]).color != getPiece(currentPiece).color)
+        if(dir.children.length == 0 || dir.children.length > 0 && getPiece(dir.children[0]).color != getPiece(currPiece).color)
             return true;
         return false;
     }
@@ -526,7 +568,6 @@ function checkPseudoLegalMoves(noColor = false)
             kingMoves();
             break;
     }
-    colorSquares(movesArray, 'legal', noColor);
     return movesArray;
 }
 
