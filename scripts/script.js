@@ -137,7 +137,7 @@ function dropPiece(loc) {
             fiftyMoveRule = 0;
         if(specialMoves.includes(square))
         {
-            if(piece.type.toLowerCase() == 'k')
+            if(piece.type.toLowerCase() == 'k' && checkCheck() == '')
             {
                 const moveRook = (square, pi) => {
                         squaresFlat[square].appendChild(squaresFlat[pi].children[0]);
