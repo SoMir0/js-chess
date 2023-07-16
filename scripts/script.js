@@ -1,3 +1,5 @@
+"use strict";
+
 let bKnightImg = '/assets/128px/knight_black_shadow.png';
 let bKingImg = '/assets/128px/king_black_shadow.png';
 let bPawnImg = '/assets/128px/pawn_black_shadow.png';
@@ -31,6 +33,7 @@ let squaresFlat = [];
 let pieces = [];
 let legalMoves = [];
 let specialMoves = [];
+let prevPositions = [];
 
 let currentPiece;
 let swapPiece;
@@ -45,7 +48,14 @@ let checked = null;
 
 let pause = false;
 
+let fiftyMoveRule = 0;
+
 const getPiece = (el) => pieces[el.dataset.objIndex];
+
+function elementCount(arr, element) {
+ return arr.reduce((currentElement, arrElement) =>
+  (arrElement == element ? currentElement + 1 : currentElement), 0);
+}
 
 function clearMoves() {
     legalMoves = [];
@@ -112,14 +122,19 @@ function dropPiece(loc) {
     colorSquares(squaresFlat, 'inCheck', true);
     checked = null;
 
+    fiftyMoveRule += 1;
+
     if(square.children.length > 0)
     {
         square.children[0].remove()
         player = document.getElementById('takeSound');
+        fiftyMoveRule = 0;
     }
     else if(square.children.length == 0)
     {
         let squareIndex = squaresFlat.indexOf(square);
+        if(piece.type.toLowerCase() == 'p')
+            fiftyMoveRule = 0;
         if(specialMoves.includes(square))
         {
             if(piece.type.toLowerCase() == 'k')
@@ -195,14 +210,58 @@ function dropPiece(loc) {
 
     player.currentTime = 0;
     player.play();
+    
+    let fString = encodeFEN();
+    prevPositions.push(fString);
+    if(elementCount(prevPositions, fString) >= 3)
+    {
+        document.getElementById('winText').innerHTML = 'Draw! (threefold repetition)';
+        document.getElementById('winText').style.display = 'inline-block';
+        pause = true;
+    }
 
-    checkCheckmate('w');
-    checkCheckmate('b');
+    let ch = checkCheck();
+
+    if(ch.includes('w'))
+        colorSquares([pieces[whiteKing].element.parentElement], 'inCheck');
+    else if(ch.includes('b'))
+        colorSquares([pieces[blackKing].element.parentElement], 'inCheck')
+
+    checkCheckmate('w', ch);
+    checkCheckmate('b', ch);
+
+    if(fiftyMoveRule >= 50)
+    {
+        document.getElementById('winText').innerHTML = 'Draw! (fifty move rule)';
+        document.getElementById('winText').style.display = 'inline-block';
+        pause = true;
+    }
 }
 
-function checkCheckmate(color) {
+function checkCheck() {
+    let isInCheck = '';
+
+    for(let i in squaresFlat)
+    {
+        if(squaresFlat[i].children.length == 0)
+            continue;
+        let thisPiece = getPiece(squaresFlat[i].children[0]);
+        currentPiece = thisPiece.element;
+        checkLegalMoves(true);
+        if(legalMoves.includes(pieces[whiteKing].element.parentElement))
+            isInCheck += 'w';
+        if(legalMoves.includes(pieces[blackKing].element.parentElement))
+            isInCheck += 'b';
+    }
+
+    legalMoves = [];
+    currentPiece = null;
+
+    return isInCheck;
+}
+
+function checkCheckmate(color, isInCheck) {
     let isInCheckmate = true;
-    let isInCheck = false;
 
     for(let i in squaresFlat)
     {
@@ -213,9 +272,6 @@ function checkCheckmate(color) {
         checkLegalMoves(true);
         if(thisPiece.color != color)
         {
-            let king = (color == 'w') ? whiteKing : blackKing;
-            if(legalMoves.includes(pieces[king].element.parentElement))
-                isInCheck = true;
             legalMoves = [];
             continue;
         }
@@ -225,16 +281,16 @@ function checkCheckmate(color) {
         }
     }
 
-    let clr = (color == 'w') ? 'black' : 'white';
-
     if(isInCheckmate)
     {
         let text = document.getElementById('winText');
         text.style.display = 'inline-block';
-        if(isInCheck)
-            text.innerHTML = clr + ' wins!';
+        if(isInCheck.includes('b'))
+            text.innerHTML = 'White wins!';
+        else if(isInCheck.includes('w'))
+            text.innerHTML = 'Black wins!';
         else
-            text.innerHTML = 'stalemate!';
+            text.innerHTML = 'Stalemate!';
 
         pause = true;
     }
@@ -283,10 +339,43 @@ function createPiece(parent, type) {
     return [newPiece, pie];
 }
 
+function encodeFEN() {
+    let fenString = '';
+
+    for(let i = 0; i < 8; i++)
+    {
+        let counter = 0;
+        for(let j = 0; j < 8; j++)
+        {
+            if(squares[i][j].children.length == 0)
+            {
+                counter++;
+                if(j == 7)
+                {
+                    fenString += counter;
+                    counter = 0;
+                }
+            }
+            else {
+                if(counter != 0)
+                {
+                    fenString += counter;
+                    counter = 0;
+                }
+                fenString += getPiece(squares[i][j].children[0]).type;
+            }
+        }
+        if(i != 7)
+            fenString += '/';
+    }
+
+    return fenString;
+}
+
 function decodeFEN(fenString = '') {
     if(fenString === '')
         fenString = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-    fenParts = fenString.split(' ');
+    let fenParts = fenString.split(' ');
     let positions = fenParts[0];
     let ranks = positions.split('/');
 

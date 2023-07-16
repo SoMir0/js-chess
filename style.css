@@ -79,8 +79,15 @@ body, html {
     max-width: 5vmax;
 }
 
-.inCheck {
-    background-color: rgb(187, 95, 95);
+.inCheck::after {
+    content: '';
+    width: 7vmin;
+    height: 7vmin;
+    position: absolute;
+    background-color: red;
+    border-radius: 50%;
+    filter: blur(12px) opacity(0.7);
+    pointer-events: none;
 }
 
 .winText {
