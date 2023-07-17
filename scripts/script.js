@@ -45,11 +45,15 @@ let oldPos;
 
 let whiteKing, blackKing;
 
+let countDownTimer;
+let playerOneTime = 10 * 60 * 1000;
+let playerTwoTime = 10 * 60 * 1000;
+
 let playerColor = '';
 let lastPlayed = 'b';
 let checked = null;
 
-let pause = false;
+let pause = true;
 
 let fiftyMoveRule = 0;
 
@@ -65,6 +69,58 @@ socket.on('color', function(clr) {
     if(clr == 'b')
         reverseChildren(document.getElementById('board'));
 });
+
+socket.on('startGame', () => {
+    pause = false;
+    startTimer();
+})
+
+function renderTimer() {
+  var minutes = Math.floor((playerOneTime % (1000 * 60 * 60)) / (1000 * 60));
+  var seconds = Math.floor((playerOneTime % (1000 * 60)) / 1000);
+
+  var minutestwo = Math.floor((playerTwoTime % (1000 * 60 * 60)) / (1000 * 60));
+  var secondstwo = Math.floor((playerTwoTime % (1000 * 60)) / 1000);
+  if(playerColor == 'b')
+  {
+    document.getElementById("clock1").innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0')
+    document.getElementById("clock2").innerHTML = minutestwo.toString().padStart(2, '0') + ":" + secondstwo.toString().padStart(2, '0')
+  }
+  else
+  {
+    document.getElementById("clock1").innerHTML = minutestwo.toString().padStart(2, '0') + ":" + secondstwo.toString().padStart(2, '0')
+    document.getElementById("clock2").innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0')
+  }
+}
+
+function startTimer() {
+    if(countDownTimer != null)
+        return;
+    countDownTimer = setInterval(function() {
+        if(lastPlayed == 'b')
+            playerOneTime -= 1000;
+        else
+            playerTwoTime -= 1000;
+
+        renderTimer();
+        
+        if (playerOneTime < 0 || playerTwoTime < 0) {
+            gameOver();
+        }
+    }, 1000);
+}
+
+function gameOver() {
+    clearInterval(countDownTimer);
+    countDownTimer = null;
+    pause = true;
+
+    let text = document.getElementById('winText');
+    text.style.display = 'inline-block';
+    text.innerHTML = 'Game over!';
+
+    pause = true;
+}
 
 const getPiece = (el) => pieces[el.dataset.objIndex];
 

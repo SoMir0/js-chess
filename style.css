@@ -29,7 +29,6 @@ main {
     border-radius: 15px;
     padding: 1rem 2rem;
     box-shadow: #202020 1px 5px 10px;
-    display: none;
 }
 
 .clock2 p {

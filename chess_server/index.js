@@ -33,6 +33,9 @@ io.on('connection', (socket) => {
     io.to(socket.id).emit('color', '');
   }
 
+  if(whitePlayerId != null && blackPlayerId != null)
+    io.emit('startGame');
+
   socket.on('disconnect', () => {
     if(socket.id == whitePlayerId)
       whitePlayerId = null;
