@@ -6,4 +6,6 @@ Browser chess game written in pure HTML, CSS and JavaScript.
 Open ```chess_server``` in a terminal, run ```npm i``` or ```npm ci```.
 Then run ```npm run dev```.
 
-Then run ```index.html``` **with a web server** in two tabs, or on two devices, to start the game.
+Then in the root directory, run ```npm i``` and ```npm run dev``` to start the client http server.
+
+You need two players connected to play.
