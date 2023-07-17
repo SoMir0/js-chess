@@ -1,18 +1,18 @@
 "use strict";
 
-let bKnightImg = '/assets/128px/knight_black_shadow.png';
-let bKingImg = '/assets/128px/king_black_shadow.png';
-let bPawnImg = '/assets/128px/pawn_black_shadow.png';
-let bRookImg = '/assets/128px/rook_black_shadow.png';
-let bQueenImg = '/assets/128px/queen_black_shadow.png';
-let bBishopImg = '/assets/128px/bishop_black_shadow.png';
+let bKnightImg = '../assets/128px/knight_black_shadow.png';
+let bKingImg = '../assets/128px/king_black_shadow.png';
+let bPawnImg = '../assets/128px/pawn_black_shadow.png';
+let bRookImg = '../assets/128px/rook_black_shadow.png';
+let bQueenImg = '../assets/128px/queen_black_shadow.png';
+let bBishopImg = '../assets/128px/bishop_black_shadow.png';
 
-let wKnightImg = '/assets/128px/knight_white_shadow.png';
-let wKingImg = '/assets/128px/king_white_shadow.png';
-let wPawnImg = '/assets/128px/pawn_white_shadow.png';
-let wRookImg = '/assets/128px/rook_white_shadow.png';
-let wQueenImg = '/assets/128px/queen_white_shadow.png';
-let wBishopImg = '/assets/128px/bishop_white_shadow.png';
+let wKnightImg = '../assets/128px/knight_white_shadow.png';
+let wKingImg = '../assets/128px/king_white_shadow.png';
+let wPawnImg = '../assets/128px/pawn_white_shadow.png';
+let wRookImg = '../assets/128px/rook_white_shadow.png';
+let wQueenImg = '../assets/128px/queen_white_shadow.png';
+let wBishopImg = '../assets/128px/bishop_white_shadow.png';
 
 let images = [wPawnImg, wKnightImg, wBishopImg, wRookImg, wQueenImg, wKingImg, bPawnImg, bKnightImg, bBishopImg, bRookImg, bQueenImg, bKingImg];
 let pieceNames = ['P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'];
@@ -53,8 +53,17 @@ let pause = false;
 
 let fiftyMoveRule = 0;
 
+function reverseChildren(parent) {
+    for (var i = 1; i < parent.childNodes.length; i++){
+        parent.insertBefore(parent.childNodes[i], parent.firstChild);
+    }
+}
+
 socket.on('color', function(clr) {
     playerColor = clr;
+
+    if(clr == 'b')
+        reverseChildren(document.getElementById('board'));
 });
 
 const getPiece = (el) => pieces[el.dataset.objIndex];
@@ -97,7 +106,6 @@ function drop(ev) {
 }
 
 socket.on('movePiece', function([curr, loc]) {
-    console.log('AAAAAAAAAAAA');
     currentPiece = squaresFlat[curr].children[0];
     dropPiece(squaresFlat[loc], true);
 });

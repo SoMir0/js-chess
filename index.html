@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/style.css">
-    <script type="module" src="/scripts/socket.io.min.js"></script>
-    <script src="/scripts/script.js" defer></script>
+    <link rel="stylesheet" href="./style.css">
+    <script type="module" src="./scripts/socket.io.min.js"></script>
+    <script src="./scripts/script.js" defer></script>
     <title>Chess</title>
 </head>
 <body>
     <audio id="pieceSound">
-        <source src="/assets/sounds/move_sound.mp3" type="audio/mpeg">
+        <source src="./assets/sounds/move_sound.mp3" type="audio/mpeg">
         Your browser doesn't support audio.
     </audio>
     <audio id="takeSound">
-        <source src="/assets/sounds/take_sound.mp3" type="audio/mpeg">
+        <source src="./assets/sounds/take_sound.mp3" type="audio/mpeg">
     </audio>
     <h3 id="winText" class="winText">wins!</h3>
     <main>
@@ -22,16 +22,16 @@
         <div id="board">
             <div id="chooser" class="choosePiece">
                 <button onclick="drawPiece('q')">
-                    <img src="assets/128px/queen_white_shadow.png" alt="queen">
+                    <img src="./assets/128px/queen_white_shadow.png" alt="queen">
                 </button>
                 <button onclick="drawPiece('r')">
-                    <img src="assets/128px/rook_white_shadow.png" alt="rook">
+                    <img src="./assets/128px/rook_white_shadow.png" alt="rook">
                 </button>
                 <button onclick="drawPiece('b')">
-                    <img src="assets/128px/bishop_white_shadow.png" alt="bishop">
+                    <img src="./assets/128px/bishop_white_shadow.png" alt="bishop">
                 </button>
                 <button onclick="drawPiece('n')">
-                    <img src="assets/128px/knight_white_shadow.png" alt="knight">
+                    <img src="./assets/128px/knight_white_shadow.png" alt="knight">
                 </button>
             </div>
         </div>

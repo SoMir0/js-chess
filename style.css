@@ -29,6 +29,7 @@ main {
     border-radius: 15px;
     padding: 1rem 2rem;
     box-shadow: #202020 1px 5px 10px;
+    display: none;
 }
 
 .clock2 p {
@@ -52,8 +53,8 @@ main {
 }
 
 #board {
-    width: 40vmax;
-    height: 40vmax;
+    width: 90vh;
+    height: 90vh;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -133,7 +134,7 @@ main {
 
 .winText {
     position: absolute;
-    font-size: 2rem;
+    font-size: 1.5rem;
     top: 0;
     display: none;
 }
