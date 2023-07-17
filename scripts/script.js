@@ -28,6 +28,8 @@ class Piece {
     }
 }
 
+const socket = io("http://localhost:3000");
+
 let squares = [];
 let squaresFlat = [];
 let pieces = [];
@@ -43,12 +45,17 @@ let oldPos;
 
 let whiteKing, blackKing;
 
+let playerColor = '';
 let lastPlayed = 'b';
 let checked = null;
 
 let pause = false;
 
 let fiftyMoveRule = 0;
+
+socket.on('color', function(clr) {
+    playerColor = clr;
+});
 
 const getPiece = (el) => pieces[el.dataset.objIndex];
 
@@ -67,7 +74,7 @@ function allowDrop(ev) {
 }
 
 function drag(ev) {
-    if(pause || getPiece(ev.target).color == lastPlayed)
+    if(pause || playerColor != getPiece(ev.target).color || getPiece(ev.target).color == lastPlayed)
         return;
     currentPiece = ev.target;
     setCurrentFilteredSquare(ev.target.parentElement);
@@ -89,7 +96,13 @@ function drop(ev) {
     dropPiece(ev.target);
 }
 
-function dropPiece(loc) {
+socket.on('movePiece', function([curr, loc]) {
+    console.log('AAAAAAAAAAAA');
+    currentPiece = squaresFlat[curr].children[0];
+    dropPiece(squaresFlat[loc], true);
+});
+
+function dropPiece(loc, override = false) {
     colorSquares(legalMoves, 'legal', true);
     if(currentPiece == null || loc == currentPiece || loc == currentPiece.parentElement)
     {
@@ -113,11 +126,14 @@ function dropPiece(loc) {
         return;
     }
 
-    if(!legalMoves.includes(square))
-    {
-        clearMoves();
-        return;
-    }
+    if(!override)
+        if(!legalMoves.includes(square))
+        {
+            clearMoves();
+            return;
+        }
+
+    socket.emit('movePiece', [squaresFlat.indexOf(currentPiece.parentElement), squaresFlat.indexOf(square)]);
 
     colorSquares(squaresFlat, 'inCheck', true);
     checked = null;

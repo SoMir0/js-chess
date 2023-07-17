@@ -10,6 +10,47 @@ body, html {
     align-items: center;
 }
 
+main {
+    display: flex;
+    flex-direction: row;
+    gap: 5vmax;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+.clock1, .clock2 {
+    font-size: 3rem;
+    margin: auto;
+    background-color: #303030;
+    border-radius: 15px;
+    padding: 1rem 2rem;
+    box-shadow: #202020 1px 5px 10px;
+}
+
+.clock2 p {
+    margin: auto;
+}
+
+.clock2 button {
+    background-color: green;
+    color: white;
+    font-size: 2rem;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: #000 5px 5px 0px;
+}
+
+.clock2 button:active {
+    transform: translate(5px, 5px);
+    box-shadow: none;
+}
+
 #board {
     width: 40vmax;
     height: 40vmax;
