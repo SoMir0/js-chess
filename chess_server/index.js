@@ -44,6 +44,9 @@ io.on("connection", (socket) => {
   socket.on("resign", (c) => {
     socket.broadcast.emit("resign", c);
   });
+  socket.on("startAgain", () => {
+    socket.broadcast.emit("startAgain");
+  });
 });
 
 server.listen(port, () => {

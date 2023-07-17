@@ -165,10 +165,46 @@ function lose(l) {
 function startAgain() {
   if(!pause)
     return;
+  clearInterval(countDownTimer);
+  countDownTimer = null;
+
+  colorSquares(squaresFlat, 'legal', true);
+  colorSquares(squaresFlat, 'inCheck', true);
+  colorSquares(squaresFlat, 'playing', true);
+  colorSquares(squaresFlat, 'played', true);
+
+  pause = false;
+
+  let text = document.getElementById("winText");
+  text.style.display = "none";
+
+  clearMoves();
+
+  for(let i in pieces) {
+    pieces[i].element.remove();
+    delete pieces[i];
+  }
+
+  pieces = [];
+
+  decodeFEN();
+
+  playerColor = (playerColor == 'b') ? 'w' : 'b';
+
+  reverseChildren(document.getElementById('board'));
+
+  playerOneTime = 10 * 60 * 1000;
+  playerTwoTime = 10 * 60 * 1000;
+
+  startTimer();
+
   document.getElementById("againButton").disabled = true;
+
+  socket.emit('startAgain');
 }
 
 socket.on("resign", (c) => lose(c));
+socket.on("startAgain", () => startAgain());
 
 function resign() {
   if(playerColor == '')
