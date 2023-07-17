@@ -1,6 +1,8 @@
 # js-chess
 Browser chess game written in pure HTML, CSS and JavaScript.
 
+![Preview](https://i.imgur.com/jdEEk2x.jpeg)
+
 ### To run:
 
 Open ```chess_server``` in a terminal, run ```npm i``` or ```npm ci```.
