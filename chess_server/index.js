@@ -41,13 +41,12 @@ io.on('connection', (socket) => {
       whitePlayerId = null;
     else if(socket.id == blackPlayerId)
       blackPlayerId = null;
-    io.emit('message', 'user disconnected');
   });
   socket.on('movePiece', (arr) => {
     socket.broadcast.emit('movePiece', arr);
-  })
-  socket.on('message', (msg) => {
-    io.emit('message', msg);
+  });
+  socket.on('draw', (t) => {
+    socket.broadcast.emit('draw', t);
   });
 });
 

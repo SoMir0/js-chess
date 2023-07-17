@@ -97,10 +97,13 @@ function startTimer() {
     if(countDownTimer != null)
         return;
     countDownTimer = setInterval(function() {
-        if(lastPlayed == 'b')
-            playerOneTime -= 1000;
-        else
-            playerTwoTime -= 1000;
+        if(!pause)
+        {
+            if(lastPlayed == 'b')
+                playerOneTime -= 1000;
+            else
+                playerTwoTime -= 1000;
+        }
 
         renderTimer();
         
@@ -117,7 +120,10 @@ function gameOver() {
 
     let text = document.getElementById('winText');
     text.style.display = 'inline-block';
-    text.innerHTML = 'Game over!';
+    if(playerOneTime <= 0)
+        text.innerHTML = 'Black wins! (timeout)';
+    if(playerTwoTime <= 0)
+        text.innerHTML = 'White wins! (timeout)';
 
     pause = true;
 }
@@ -161,8 +167,11 @@ function drop(ev) {
     dropPiece(ev.target);
 }
 
-socket.on('movePiece', function([curr, loc]) {
+socket.on('movePiece', function([curr, loc, spec]) {
     currentPiece = squaresFlat[curr].children[0];
+    squaresFlat[curr].classList.add('played');
+    if(spec)
+        specialMoves.push(squaresFlat[loc]);
     dropPiece(squaresFlat[loc], true);
 });
 
@@ -197,12 +206,12 @@ function dropPiece(loc, override = false) {
             return;
         }
 
-    socket.emit('movePiece', [squaresFlat.indexOf(currentPiece.parentElement), squaresFlat.indexOf(square)]);
-
     colorSquares(squaresFlat, 'inCheck', true);
     checked = null;
 
     fiftyMoveRule += 1;
+
+    socket.emit('movePiece', [squaresFlat.indexOf(currentPiece.parentElement), squaresFlat.indexOf(square), specialMoves.includes(square)]);
 
     if(square.children.length > 0)
     {
@@ -220,27 +229,32 @@ function dropPiece(loc, override = false) {
             if(piece.type.toLowerCase() == 'k' && checkCheck() == '')
             {
                 const moveRook = (square, pi) => {
-                        squaresFlat[square].appendChild(squaresFlat[pi].children[0]);
-                        squaresFlat[square].classList.add('playing');
-                } 
+                    squaresFlat[square].appendChild(squaresFlat[pi].children[0]);
+                    squaresFlat[square].classList.add('playing');
+                }
                 switch(squareIndex)
                 {
                     case 62:
                         moveRook(61, 63);
+                        currentPiece = pieces[whiteKing].element;
                         break;
                     case 58:
                         moveRook(59, 56);
+                        currentPiece = pieces[whiteKing].element;
                         break;
                     case 2:
                         moveRook(3, 0);
+                        currentPiece = pieces[blackKing].element;
                         break;
                     case 6:
                         moveRook(5, 7);
+                        currentPiece = pieces[blackKing].element;
                         break;
                     default:
                         break;
                 }
                 clearMoves();
+                player = document.getElementById('castleSound');
             }
             else if(piece.type.toLowerCase() == 'p' || squaresFlat[squareIndex-8].children.length > 0)
             {
@@ -269,13 +283,15 @@ function dropPiece(loc, override = false) {
 
     if(squaresFlat.indexOf(square) >= 0 && squaresFlat.indexOf(square) < 8 && piece.color == 'w' && piece.type.toLowerCase() == 'p')
     {
+        if(lastPlayed != playerColor)
+            document.getElementById('chooser').style.display = 'flex';
         pause = true;
-        document.getElementById('chooser').style.display = 'flex';
     }
     else if(squaresFlat.indexOf(square) >= 56 && squaresFlat.indexOf(square) < 64 && piece.color == 'b' && piece.type.toLowerCase() == 'p')
     {
+        if(lastPlayed != playerColor)
+            document.getElementById('chooser').style.display = 'flex';
         pause = true;
-        document.getElementById('chooser').style.display = 'flex';
     }
 
     square.appendChild(currentPiece);
@@ -769,6 +785,8 @@ function colorSquares(arr, cls, uncolor = false) {
     }
 }
 
+socket.on('draw', (t) => drawPiece(t));
+
 function drawPiece(type) {
     document.getElementById('chooser').style.display = 'none';
     var p = swapPiece.parentElement;
@@ -777,6 +795,7 @@ function drawPiece(type) {
         type = type.toUpperCase();
     swapPiece.remove();
     createPiece(p, type);
+    socket.emit('draw', type);
     pause = false;
 }
 

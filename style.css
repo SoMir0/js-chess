@@ -51,6 +51,10 @@ main {
     box-shadow: none;
 }
 
+.clock2 button:disabled {
+    background-color: #696969;
+}
+
 #board {
     width: 90vh;
     height: 90vh;
