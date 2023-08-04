@@ -131,8 +131,7 @@ function startTimer() {
 }
 
 function gameOver() {
-  if(pause)
-    return;
+  if (pause) return;
   clearInterval(countDownTimer);
   countDownTimer = null;
   pause = true;
@@ -147,8 +146,7 @@ function gameOver() {
 }
 
 function lose(l) {
-  if(pause)
-    return;
+  if (pause) return;
   clearInterval(countDownTimer);
   countDownTimer = null;
   pause = true;
@@ -163,15 +161,14 @@ function lose(l) {
 }
 
 function startAgain() {
-  if(!pause)
-    return;
+  if (!pause) return;
   clearInterval(countDownTimer);
   countDownTimer = null;
 
-  colorSquares(squaresFlat, 'legal', true);
-  colorSquares(squaresFlat, 'inCheck', true);
-  colorSquares(squaresFlat, 'playing', true);
-  colorSquares(squaresFlat, 'played', true);
+  colorSquares(squaresFlat, "legal", true);
+  colorSquares(squaresFlat, "inCheck", true);
+  colorSquares(squaresFlat, "playing", true);
+  colorSquares(squaresFlat, "played", true);
 
   pause = false;
 
@@ -180,7 +177,7 @@ function startAgain() {
 
   clearMoves();
 
-  for(let i in pieces) {
+  for (let i in pieces) {
     pieces[i].element.remove();
     delete pieces[i];
   }
@@ -189,9 +186,9 @@ function startAgain() {
 
   decodeFEN();
 
-  playerColor = (playerColor == 'b') ? 'w' : 'b';
+  playerColor = playerColor == "b" ? "w" : "b";
 
-  reverseChildren(document.getElementById('board'));
+  reverseChildren(document.getElementById("board"));
 
   playerOneTime = 10 * 60 * 1000;
   playerTwoTime = 10 * 60 * 1000;
@@ -200,15 +197,14 @@ function startAgain() {
 
   document.getElementById("againButton").disabled = true;
 
-  socket.emit('startAgain');
+  socket.emit("startAgain");
 }
 
 socket.on("resign", (c) => lose(c));
 socket.on("startAgain", () => startAgain());
 
 function resign() {
-  if(playerColor == '')
-    return;
+  if (playerColor == "") return;
   lose(playerColor);
   socket.emit("resign", playerColor);
 }
@@ -470,8 +466,7 @@ function checkCheckmate(color, isInCheck) {
   }
 
   if (isInCheckmate) {
-    if(pause)
-      return;
+    if (pause) return;
     let text = document.getElementById("winText");
     text.style.display = "inline-block";
     if (isInCheck.includes("b")) text.innerHTML = "White wins!";
